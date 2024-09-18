@@ -223,7 +223,15 @@ function updateLaserweederCalculations() {
     const weedsInBand = weeds.filter(weed => weed.element.style.display !== 'none' && isWeedInBand(weed)).length;
     
     const timePerWeed = shootTime + SERVO_OVERHEAD;
-    const totalTime = weedsInBand * timePerWeed;
+
+    // Determine the number of lasers per band
+    let lasersPerBand = 1; // Default to 1 laser per band
+    if (currentMachineSize === 40 || currentMachineSize === 60) {
+        lasersPerBand = 2; // For 40' and 60' machines
+    }
+
+    // Adjust total time based on lasers per band
+    const totalTime = (weedsInBand * timePerWeed) / lasersPerBand;
     const secondsPerFoot = totalTime / 1000; // Convert ms to seconds
     const feetPerMinute = 60 / secondsPerFoot;
     const milesPerHour = feetPerMinute * 60 / 5280;
@@ -233,8 +241,9 @@ function updateLaserweederCalculations() {
     speedOutput.innerHTML = `
         <p>Shoot Time: ${shootTime.toFixed(2)} ms</p>
         <p>Servo Overhead: ${SERVO_OVERHEAD} ms</p>
-        <p>Time per weed: ${timePerWeed.toFixed(2)} ms</p>
-        <p>Weeds in band: ${weedsInBand}</p>
+        <p>Time per Weed: ${timePerWeed.toFixed(2)} ms</p>
+        <p>Weeds in Band: ${weedsInBand}</p>
+        <p>Lasers per Band: ${lasersPerBand}</p>
         <p>Total Time for 1 sq ft: ${totalTime.toFixed(2)} ms</p>
         <p>Speed: ${feetPerMinute.toFixed(2)} ft/min</p>
         <p>Speed: ${milesPerHour.toFixed(2)} mph</p>
