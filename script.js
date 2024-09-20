@@ -335,8 +335,23 @@ function updateAcresVisualization(acresPerHour) {
     acresDisplay.textContent = `Acres per Hour: ${acresPerHour.toFixed(2)}`;
 }
 
+function createAcresKey() {
+    const acresKey = document.getElementById('acres-key');
+    acresKey.innerHTML = `
+        <div class="flex items-center mr-4">
+            <div class="w-4 h-4 bg-red-500 mr-2"></div>
+            <span>Laserweeded</span>
+        </div>
+        <div class="flex items-center">
+            <div class="w-4 h-4 bg-green-500 mr-2"></div>
+            <span>Untreated</span>
+        </div>
+    `;
+}
+
 // Initial update
 createAcresVisualization();
+createAcresKey();
 updateBandVisualization();
 updateVisualization();
 document.querySelector('input[name="machine-size"]:checked').dispatchEvent(new Event('change'));
