@@ -23,10 +23,27 @@ const sizeValue = document.getElementById('size-value');
 const bandWidthValue = document.getElementById('band-width-value');
 const speedOutput = document.getElementById('speed-output');
 
+// **New DOM elements for the dropdowns and password-protected section**
+const togglePerformanceDataButton = document.getElementById('toggle-performance-data');
+const performanceDataDiv = document.getElementById('performance-data');
+const togglePerformanceImprovementsButton = document.getElementById('toggle-performance-improvements');
+const performanceImprovementsDiv = document.getElementById('performance-improvements');
+const modifyServoButton = document.getElementById('modify-servo');
+const servoSliderSection = document.getElementById('servo-slider-section');
+const passwordInput = document.getElementById('password-input');
+const passwordEnterButton = document.getElementById('password-enter');
+const passwordCancelButton = document.getElementById('password-cancel');
+const servoSlider = document.getElementById('servo-slider');
+const servoOverheadImproveSpan = document.getElementById('servo-overhead-improve');
+const servoOverheadSpan = document.getElementById('servo-overhead');
+
 // Initialize weed array and current size
 let weeds = [];
 let currentSize = 1;
 let currentBandWidth = 12;
+
+// **Flag to track if the user has entered the correct password**
+let isAuthorized = false;
 
 // Create background
 createBackground();
@@ -46,6 +63,13 @@ bandWidthSlider.addEventListener('input', updateBandWidth);
 document.querySelectorAll('input[name="machine-size"]').forEach(radio => {
     radio.addEventListener('change', updateMachineSize);
 });
+
+// **Add event listeners for the dropdown toggles and password-protected section**
+addEventListeners();
+
+// Initialize Servo Overhead display
+servoOverheadSpan.textContent = SERVO_OVERHEAD.toFixed(2);
+servoOverheadImproveSpan.textContent = SERVO_OVERHEAD.toFixed(2);
 
 // Function to calculate acres per hour
 function calculateAcresPerHour(speedMph, machineWidth) {
@@ -72,7 +96,7 @@ function createInchMarks() {
         if (i % 2 === 0) {
             inchMarks.innerHTML += `<text x="15" y="${yPos}" text-anchor="end" dominant-baseline="middle" font-size="10">${12-i}"</text>`;
         }
-        
+
         // Horizontal marks
         const xPos = 25 + i * (350/12);
         inchMarks.innerHTML += `<line x1="${xPos}" y1="375" x2="${xPos}" y2="380" stroke="black" />`;
@@ -94,8 +118,8 @@ function createWeeds() {
         weed.setAttribute('transform', `translate(${x},${y}) rotate(${rotation})`);
 
         fieldView.appendChild(weed);
-        weeds.push({ 
-            element: weed, 
+        weeds.push({
+            element: weed,
             rotation: rotation,
             x: x,
             y: y,
@@ -175,8 +199,8 @@ function updateSize() {
 }
 
 function updateWeedSize(weed, size) {
-    const scaleFactor = size / 10;
-    const leafCount = weed.type === 'broadleaf' 
+    const scaleFactor = size /15;
+    const leafCount = weed.type === 'broadleaf'
         ? Math.min(Math.floor(size / 2) + 1, 5)
         : Math.min(Math.floor(size / 4) + 1, 3); // Fewer leaves for grass
 
@@ -185,7 +209,7 @@ function updateWeedSize(weed, size) {
 
     // Create new leaves
     for (let i = 0; i < leafCount; i++) {
-        const leaf = weed.type === 'broadleaf' 
+        const leaf = weed.type === 'broadleaf'
             ? createBroadleaf(i, leafCount)
             : createGrassLeaf(i, leafCount);
         weed.element.appendChild(leaf);
@@ -220,8 +244,10 @@ function createGrassLeaf(index, total) {
 function updateLaserweederCalculations() {
     const size = parseInt(sizeSlider.value);
     const shootTime = 25 + (size - 1) * (500 - 25) / 9; // Linear interpolation
-    const weedsInBand = weeds.filter(weed => weed.element.style.display !== 'none' && isWeedInBand(weed)).length;
-    
+    const weedsInBand = weeds.filter(
+        (weed) => weed.element.style.display !== 'none' && isWeedInBand(weed)
+    ).length;
+
     const timePerWeed = shootTime + SERVO_OVERHEAD;
 
     // Determine the number of lasers per band
@@ -234,23 +260,29 @@ function updateLaserweederCalculations() {
     const totalTime = (weedsInBand * timePerWeed) / lasersPerBand;
     const secondsPerFoot = totalTime / 1000; // Convert ms to seconds
     const feetPerMinute = 60 / secondsPerFoot;
-    const milesPerHour = feetPerMinute * 60 / 5280;
-    
+    const milesPerHour = (feetPerMinute * 60) / 5280;
+    const kilometersPerHour = milesPerHour * 1.60934; // Convert to kph
+
     const acresPerHour = calculateAcresPerHour(milesPerHour, currentMachineSize);
 
-    speedOutput.innerHTML = `
-        <p>Shoot Time: ${shootTime.toFixed(2)} ms</p>
-        <p>Servo Overhead: ${SERVO_OVERHEAD} ms</p>
-        <p>Time per Weed: ${timePerWeed.toFixed(2)} ms</p>
-        <p>Weeds in Band: ${weedsInBand}</p>
-        <p>Lasers per Band: ${lasersPerBand}</p>
-        <p>Total Time for 1 sq ft: ${totalTime.toFixed(2)} ms</p>
-        <p>Speed: ${feetPerMinute.toFixed(2)} ft/min</p>
-        <p>Speed: ${milesPerHour.toFixed(2)} mph</p>
-        <p>Machine Width: ${currentMachineSize} ft</p>
-        <p>Acres per Hour: ${acresPerHour.toFixed(2)}</p>
-    `;
+    // Update key metrics
+    document.getElementById('speed-mph').textContent = milesPerHour.toFixed(2);
+    document.getElementById('speed-kph').textContent = kilometersPerHour.toFixed(2);
+    document.getElementById('weeds-in-band').textContent = weedsInBand;
 
+    // Update detailed metrics
+    document.getElementById('shoot-time').textContent = shootTime.toFixed(2);
+    document.getElementById('servo-overhead').textContent = SERVO_OVERHEAD.toFixed(2);
+    servoOverheadImproveSpan.textContent = SERVO_OVERHEAD.toFixed(2); // Update in performance improvements section
+    document.getElementById('time-per-weed').textContent = timePerWeed.toFixed(2);
+    document.getElementById('lasers-per-band').textContent = lasersPerBand;
+    document.getElementById('total-time').textContent = totalTime.toFixed(2);
+    document.getElementById('speed-ftmin').textContent = feetPerMinute.toFixed(2);
+    document.getElementById('speed-mmin').textContent = (feetPerMinute * 0.3048).toFixed(2); // Convert ft/min to m/min
+    document.getElementById('machine-width').textContent = currentMachineSize;
+    document.getElementById('acres-per-hour').textContent = acresPerHour.toFixed(2);
+
+    // Update Acres Visualization
     updateAcresVisualization(acresPerHour);
 }
 
@@ -264,13 +296,13 @@ function updateBandWidth() {
 function updateBandVisualization() {
     const bandWidth = currentBandWidth * INCH_TO_SVG;
     const bandStart = BAND_CENTER - bandWidth / 2;
-    
+
     // Remove existing band visualization if it exists
     const existingBand = document.getElementById('band-visualization');
     if (existingBand) {
         existingBand.remove();
     }
-    
+
     // Create new band visualization
     const band = document.createElementNS(SVG_NS, 'rect');
     band.setAttribute('id', 'band-visualization');
@@ -347,6 +379,77 @@ function createAcresKey() {
             <span>Untreated</span>
         </div>
     `;
+}
+
+// **Function to add event listeners for dropdowns and password-protected section**
+function addEventListeners() {
+    // Toggle "Performance Data" dropdown
+    togglePerformanceDataButton.addEventListener('click', () => {
+        if (performanceDataDiv.classList.contains('hidden')) {
+            performanceDataDiv.classList.remove('hidden');
+            togglePerformanceDataButton.textContent = 'Hide Performance Data';
+        } else {
+            performanceDataDiv.classList.add('hidden');
+            togglePerformanceDataButton.textContent = 'Show Performance Data';
+        }
+    });
+
+    // Toggle "Performance Improvements" dropdown
+    togglePerformanceImprovementsButton.addEventListener('click', () => {
+        if (performanceImprovementsDiv.classList.contains('hidden')) {
+            performanceImprovementsDiv.classList.remove('hidden');
+            togglePerformanceImprovementsButton.textContent = 'Hide Performance Improvements';
+        } else {
+            performanceImprovementsDiv.classList.add('hidden');
+            togglePerformanceImprovementsButton.textContent = 'Show Performance Improvements';
+        }
+    });
+
+    // Password-protected editing for Servo Overhead
+    modifyServoButton.addEventListener('click', () => {
+        if (!isAuthorized) {
+            // Show password input
+            servoSliderSection.classList.remove('hidden');
+            passwordInput.classList.remove('hidden');
+            passwordEnterButton.classList.remove('hidden');
+            passwordCancelButton.classList.remove('hidden');
+            servoSlider.classList.add('hidden'); // Hide slider until password is entered
+        } else {
+            // If already authorized, show the slider
+            servoSlider.classList.remove('hidden');
+        }
+    });
+
+    passwordEnterButton.addEventListener('click', () => {
+        const password = passwordInput.value;
+        if (password === 'simon') {
+            isAuthorized = true;
+            passwordInput.value = '';
+            // Hide password input and show slider
+            passwordInput.classList.add('hidden');
+            passwordEnterButton.classList.add('hidden');
+            passwordCancelButton.classList.add('hidden');
+            servoSlider.classList.remove('hidden');
+        } else {
+            alert('Incorrect password');
+            passwordInput.value = '';
+        }
+    });
+
+    passwordCancelButton.addEventListener('click', () => {
+        passwordInput.value = '';
+        servoSliderSection.classList.add('hidden');
+    });
+
+    // Update Servo Overhead value with slider
+    servoSlider.addEventListener('input', () => {
+        SERVO_OVERHEAD = parseFloat(servoSlider.value);
+        // Update the displayed Servo Overhead values
+        servoOverheadSpan.textContent = SERVO_OVERHEAD.toFixed(2);
+        servoOverheadImproveSpan.textContent = SERVO_OVERHEAD.toFixed(2);
+        // Recalculate metrics
+        updateVisualization();
+    });
 }
 
 // Initial update
