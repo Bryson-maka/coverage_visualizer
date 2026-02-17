@@ -5,8 +5,11 @@
     const SCAN_HEIGHT_IN = 20;
     const WINDOW_AREA_SQFT = (SCAN_WIDTH_IN * SCAN_HEIGHT_IN) / 144;
     const REFERENCE_SQFT_WIDTH_IN = 12;
+    const INCHES_PER_FOOT = 12;
+    const FEET_PER_MILE = 5280;
     const INCHES_PER_MILE = 63360;
     const SECONDS_PER_HOUR = 3600;
+    const SQFT_PER_ACRE = 43560;
 
     const SHOOT_TIME_PROFILE = Object.freeze({
         minSize: 1,
@@ -152,6 +155,38 @@
         return (safeDensityPerSqFt * safeBandWidthIn * inchesPerSecond) / 144;
     }
 
+    function computeCoverageRates(speedMph, machineWidthIn, bandWidthIn) {
+        const safeSpeedMph = Math.max(0, toNumber(speedMph, 0));
+        const safeMachineWidthIn = Math.max(0, toNumber(machineWidthIn, SCAN_WIDTH_IN));
+        const safeBandWidthIn = Math.max(0, toNumber(bandWidthIn, 0));
+
+        const travelFeetPerHour = safeSpeedMph * FEET_PER_MILE;
+        const travelFeetPerSecond = travelFeetPerHour / SECONDS_PER_HOUR;
+
+        const machineWidthFt = safeMachineWidthIn / INCHES_PER_FOOT;
+        const bandWidthFt = safeBandWidthIn / INCHES_PER_FOOT;
+
+        const machineCoverageSqFtPerHour = travelFeetPerHour * machineWidthFt;
+        const bandCoverageSqFtPerHour = travelFeetPerHour * bandWidthFt;
+
+        const machineCoverageAcresPerHour = machineCoverageSqFtPerHour / SQFT_PER_ACRE;
+        const bandCoverageAcresPerHour = bandCoverageSqFtPerHour / SQFT_PER_ACRE;
+
+        return {
+            scanAreaSqFt: (safeMachineWidthIn * SCAN_HEIGHT_IN) / 144,
+            travelFeetPerSecond,
+            travelFeetPerHour,
+            machineWidthFt,
+            bandWidthFt,
+            machineCoverageSqFtPerHour,
+            machineCoverageAcresPerHour,
+            machineHoursPerAcre: machineCoverageAcresPerHour > 0 ? 1 / machineCoverageAcresPerHour : Number.POSITIVE_INFINITY,
+            bandCoverageSqFtPerHour,
+            bandCoverageAcresPerHour,
+            bandHoursPerAcre: bandCoverageAcresPerHour > 0 ? 1 / bandCoverageAcresPerHour : Number.POSITIVE_INFINITY
+        };
+    }
+
     function getBandRange(bandWidthIn) {
         const safeBandWidthIn = clamp(toNumber(bandWidthIn, SCAN_WIDTH_IN), 0, SCAN_WIDTH_IN);
         const center = SCAN_WIDTH_IN / 2;
@@ -284,6 +319,7 @@
         computeRawSpeedMph,
         computeAppliedSpeedMph,
         computeTargetFlowTargetsPerSecond,
+        computeCoverageRates,
         getBandRange,
         normalizeScannerRanges,
         computeCoverageMetrics,

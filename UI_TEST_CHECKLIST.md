@@ -7,6 +7,7 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 - [ ] App loads without console errors.
 - [ ] Scan window, controls, and metrics all render.
 - [ ] `Applied Machine Speed` displays a numeric value.
+- [ ] Metrics tabs switch between `Simulation` and `Coverage Data`.
 - [ ] `Model Details` dropdown can be opened/closed.
 
 ## Control Ranges
@@ -56,6 +57,14 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 
 - [ ] Shots per second increases while shots are being fired.
 - [ ] Shots per minute tracks shots/sec x 60.
+
+## Coverage Data Tab
+
+- [ ] `Machine Size` shows `20.0 x 20.0` in.
+- [ ] `Applied Travel Speed` increases when applied mph increases.
+- [ ] `Machine Coverage Rate` and `Active Band Coverage` rise with speed.
+- [ ] `Machine Coverage Rate` is greater than `Active Band Coverage` when band width < 20 in.
+- [ ] Time-per-acre fields show `N/A` when applied speed is zero.
 
 ## Density Conversion Sanity
 

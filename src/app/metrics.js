@@ -3,6 +3,11 @@ export function createMetricsPresenter({ dom, state, core }) {
         return Number(value).toFixed(digits);
     }
 
+    function formatFinite(value, digits) {
+        const numeric = Number(value);
+        return Number.isFinite(numeric) ? numeric.toFixed(digits) : 'N/A';
+    }
+
     function updateMetrics() {
         const activeTargets = state.weeds.filter((weed) => !weed.shot && weed.yIn >= 0 && weed.yIn <= core.SCAN_HEIGHT_IN).length;
         const queueDepth = activeTargets;
@@ -48,6 +53,18 @@ export function createMetricsPresenter({ dom, state, core }) {
         dom.timePerTargetReadout.textContent = format(state.model.timePerTargetMs, 2);
         dom.scannerARangeReadout.textContent = `${format(state.zones.scannerA.start, 1)} - ${format(state.zones.scannerA.end, 1)}`;
         dom.scannerBRangeReadout.textContent = `${format(state.zones.scannerB.start, 1)} - ${format(state.zones.scannerB.end, 1)}`;
+
+        dom.machineSizeReadout.textContent = `${format(core.SCAN_WIDTH_IN, 1)} x ${format(core.SCAN_HEIGHT_IN, 1)}`;
+        dom.scanAreaReadout.textContent = format(state.model.scanAreaSqFt, 2);
+        dom.travelSpeedFpsReadout.textContent = format(state.model.travelFeetPerSecond, 2);
+        dom.machineWidthFtReadout.textContent = format(state.model.machineWidthFt, 2);
+        dom.bandWidthFtReadout.textContent = format(state.model.bandWidthFt, 2);
+        dom.machineCoverageSqFtHourReadout.textContent = format(state.model.machineCoverageSqFtPerHour, 2);
+        dom.machineCoverageAcresHourReadout.textContent = format(state.model.machineCoverageAcresPerHour, 4);
+        dom.machineHoursAcreReadout.textContent = formatFinite(state.model.machineHoursPerAcre, 2);
+        dom.bandCoverageSqFtHourReadout.textContent = format(state.model.bandCoverageSqFtPerHour, 2);
+        dom.bandCoverageAcresHourReadout.textContent = format(state.model.bandCoverageAcresPerHour, 4);
+        dom.bandHoursAcreReadout.textContent = formatFinite(state.model.bandHoursPerAcre, 2);
     }
 
     return {

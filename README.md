@@ -28,6 +28,7 @@ Open `http://localhost:8080`.
 - Shoot-time model tied to weed size (nonlinear anchors)
 - Speed model with applied cap at `3.0 mph`
 - Coverage-gap detection and runtime performance metrics
+- Tabbed metrics view with speed-based machine coverage data
 
 ## Default Startup Settings
 
@@ -76,6 +77,18 @@ npm run ci      # check + tests
 npm run check   # syntax checks (core + src modules)
 npm test        # unit tests for core math/model behavior
 ```
+
+## GitHub Pages Deployment
+
+This repo now includes a Pages deployment workflow at `.github/workflows/deploy-pages.yml`.
+
+1. Push commits to `main`.
+2. In GitHub repo settings, set **Pages -> Source** to **GitHub Actions**.
+3. Wait for the `Deploy GitHub Pages` workflow to finish.
+
+Published URL:
+
+- `https://bryson-maka.github.io/coverage_visualizer/`
 
 ## Reference Docs
 

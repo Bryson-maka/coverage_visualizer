@@ -54,6 +54,11 @@ export function createModelController({ core, dom, state, renderer, metrics, con
             appliedSpeed.appliedSpeedMph
         );
         const bandedLoad = core.computeBandedWeedLoadPerSqFt(input.densityPerSqFt, state.band.width);
+        const coverageRates = core.computeCoverageRates(
+            appliedSpeed.appliedSpeedMph,
+            core.SCAN_WIDTH_IN,
+            state.band.width
+        );
 
         state.model = {
             shootTimeMs,
@@ -68,7 +73,17 @@ export function createModelController({ core, dom, state, renderer, metrics, con
             bandedSharePercent: bandedLoad.bandPercent,
             coverageRatio: coverageMetrics.coverageRatio,
             coverageGapIn: coverageMetrics.gapWidthIn,
-            hasCoverageGap: coverageMetrics.hasGap
+            hasCoverageGap: coverageMetrics.hasGap,
+            scanAreaSqFt: coverageRates.scanAreaSqFt,
+            travelFeetPerSecond: coverageRates.travelFeetPerSecond,
+            machineWidthFt: coverageRates.machineWidthFt,
+            bandWidthFt: coverageRates.bandWidthFt,
+            machineCoverageSqFtPerHour: coverageRates.machineCoverageSqFtPerHour,
+            machineCoverageAcresPerHour: coverageRates.machineCoverageAcresPerHour,
+            machineHoursPerAcre: coverageRates.machineHoursPerAcre,
+            bandCoverageSqFtPerHour: coverageRates.bandCoverageSqFtPerHour,
+            bandCoverageAcresPerHour: coverageRates.bandCoverageAcresPerHour,
+            bandHoursPerAcre: coverageRates.bandHoursPerAcre
         };
 
         syncControlReadouts(input, shootTimeMs);

@@ -90,6 +90,31 @@ test('applied speed enforces cap and exposes cap state', () => {
     assert.equal(uncapped.isCapped, false);
 });
 
+test('coverage rates are derived from speed and widths', () => {
+    const coverage = core.computeCoverageRates(3, 20, 6);
+
+    near(coverage.scanAreaSqFt, 400 / 144, 1e-9);
+    near(coverage.travelFeetPerSecond, 4.4, 1e-9);
+    near(coverage.machineWidthFt, 20 / 12, 1e-9);
+    near(coverage.bandWidthFt, 0.5, 1e-9);
+    near(coverage.machineCoverageSqFtPerHour, 26400, 1e-9);
+    near(coverage.machineCoverageAcresPerHour, 26400 / 43560, 1e-9);
+    near(coverage.machineHoursPerAcre, 1.65, 1e-9);
+    near(coverage.bandCoverageSqFtPerHour, 7920, 1e-9);
+    near(coverage.bandCoverageAcresPerHour, 7920 / 43560, 1e-9);
+    near(coverage.bandHoursPerAcre, 5.5, 1e-9);
+});
+
+test('coverage rates handle zero speed without NaN', () => {
+    const coverage = core.computeCoverageRates(0, 20, 6);
+
+    assert.equal(coverage.travelFeetPerSecond, 0);
+    assert.equal(coverage.machineCoverageSqFtPerHour, 0);
+    assert.equal(coverage.bandCoverageSqFtPerHour, 0);
+    assert.equal(coverage.machineHoursPerAcre, Number.POSITIVE_INFINITY);
+    assert.equal(coverage.bandHoursPerAcre, Number.POSITIVE_INFINITY);
+});
+
 test('scanner range normalization respects band bounds', () => {
     const zones = core.normalizeScannerRanges(4, 16, 30, -2);
 

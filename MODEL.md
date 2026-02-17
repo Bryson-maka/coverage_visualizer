@@ -135,3 +135,21 @@ Leaf-count relation:
 
 For UI readability, rendered plants are shown with a fixed `2x` visual magnification multiplier after physical sizing.
 This keeps relative size semantics consistent while improving visibility.
+
+## 10) Coverage data derived from speed
+
+The Coverage Data tab converts applied speed into area coverage rates.
+
+- `travel_ft_per_hour = applied_mph * 5280`
+- `travel_ft_per_second = travel_ft_per_hour / 3600`
+- `machine_width_ft = 20 / 12`
+- `band_width_ft = band_width_in / 12`
+- `machine_sqft_per_hour = travel_ft_per_hour * machine_width_ft`
+- `band_sqft_per_hour = travel_ft_per_hour * band_width_ft`
+- `acres_per_hour = sqft_per_hour / 43560`
+- `hours_per_acre = 1 / acres_per_hour` (shown as `N/A` when speed is zero)
+
+The tab shows both:
+
+- Full machine-width coverage (20-inch scanner width)
+- Active-band coverage (selected band width)

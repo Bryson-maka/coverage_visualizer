@@ -30,7 +30,17 @@ export function createInitialState(core, config) {
             bandedSharePercent: 0,
             coverageRatio: 1,
             coverageGapIn: 0,
-            hasCoverageGap: false
+            hasCoverageGap: false,
+            scanAreaSqFt: 0,
+            travelFeetPerSecond: 0,
+            machineWidthFt: 0,
+            bandWidthFt: 0,
+            machineCoverageSqFtPerHour: 0,
+            machineCoverageAcresPerHour: 0,
+            machineHoursPerAcre: 0,
+            bandCoverageSqFtPerHour: 0,
+            bandCoverageAcresPerHour: 0,
+            bandHoursPerAcre: 0
         },
         band: initialBand,
         zones: core.normalizeScannerRanges(

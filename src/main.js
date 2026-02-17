@@ -14,6 +14,18 @@ const metrics = createMetricsPresenter({ dom, state, core });
 const model = createModelController({ core, dom, state, renderer, metrics, config: APP_CONFIG });
 const engine = createSimulationEngine({ core, dom, state, renderer, metrics, config: APP_CONFIG });
 
+function setMetricsTab(activeTab) {
+    const showingCoverage = activeTab === 'coverage';
+
+    dom.metricsTabSimulation.classList.toggle('is-active', !showingCoverage);
+    dom.metricsTabCoverage.classList.toggle('is-active', showingCoverage);
+    dom.metricsTabSimulation.setAttribute('aria-selected', String(!showingCoverage));
+    dom.metricsTabCoverage.setAttribute('aria-selected', String(showingCoverage));
+
+    dom.metricsPanelSimulation.classList.toggle('hidden', showingCoverage);
+    dom.metricsPanelCoverage.classList.toggle('hidden', !showingCoverage);
+}
+
 function bindEvents() {
     const controls = [
         dom.densitySlider,
@@ -45,10 +57,19 @@ function bindEvents() {
         engine.resetSimulationState();
         model.recomputeModel();
     });
+
+    dom.metricsTabSimulation.addEventListener('click', () => {
+        setMetricsTab('simulation');
+    });
+
+    dom.metricsTabCoverage.addEventListener('click', () => {
+        setMetricsTab('coverage');
+    });
 }
 
 function init() {
     bindEvents();
+    setMetricsTab('simulation');
     engine.setRunning(false);
     renderer.renderGrid();
     model.recomputeModel();

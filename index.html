@@ -97,39 +97,79 @@
 
             <aside class="panel metrics-panel">
                 <h2>Simulation Metrics</h2>
-                <p>Density: <strong id="density-readout">0.00</strong> weeds/sq ft</p>
-                <p>Banded Weeds per sq ft (12" ref): <strong id="banded-weeds-readout">0.00</strong></p>
-                <p>Banded Share of weeds/sq ft: <strong id="banded-share-readout">0.00</strong>%</p>
-                <div class="band-share-visual">
-                    <span class="band-share-label">Banded Share</span>
-                    <div class="band-share-track"><div id="banded-share-fill" class="band-share-fill"></div></div>
+                <div class="metrics-tabs" role="tablist" aria-label="Metrics views">
+                    <button
+                        id="metrics-tab-simulation"
+                        class="metrics-tab is-active"
+                        type="button"
+                        role="tab"
+                        aria-selected="true"
+                        aria-controls="metrics-panel-simulation"
+                    >
+                        Simulation
+                    </button>
+                    <button
+                        id="metrics-tab-coverage"
+                        class="metrics-tab"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="metrics-panel-coverage"
+                    >
+                        Coverage Data
+                    </button>
                 </div>
-                <p>Expected Weeds in 20" x 20": <strong id="window-weeds-readout">0.00</strong></p>
-                <p>Band Width: <strong id="band-width-readout">0.00</strong> in</p>
-                <p>Coverage Completeness: <strong id="coverage-readout">100.00</strong>%</p>
-                <p>Coverage Gap: <strong id="coverage-gap-readout">0.00</strong> in</p>
-                <p id="coverage-warning" class="warning hidden">Coverage gap detected. Targets in the gap cannot be shot.</p>
-                <p>Target Inflow @ Applied Speed: <strong id="inflow-readout">0.00</strong> /sec</p>
-                <p>Scanner Capacity: <strong id="capacity-readout">0.00</strong> /sec</p>
-                <p>Active Targets: <strong id="active-targets-readout">0</strong></p>
-                <p>Queue Depth: <strong id="queue-depth-readout">0</strong></p>
-                <p>Shots Fired: <strong id="shots-readout">0</strong></p>
-                <p>Shots per Second: <strong id="shots-per-second-readout">0.00</strong></p>
-                <p>Shots per Minute: <strong id="shots-per-minute-readout">0.00</strong></p>
-                <p>Missed Targets: <strong id="missed-readout">0</strong></p>
-                <p>Hit Rate: <strong id="hit-rate-readout">0.00</strong>%</p>
-                <p>Elapsed Runtime: <strong id="elapsed-readout">0.0 s (0.00 min)</strong></p>
 
-                <details>
-                    <summary>Model Details (Raw Values)</summary>
-                    <p>Raw Modeled Speed: <strong id="raw-speed-readout">0.00</strong> mph</p>
-                    <p>Applied Speed: <strong id="applied-speed-readout">0.00</strong> mph</p>
-                    <p>Shoot Time: <strong id="shoot-time-readout">0.00</strong> ms</p>
-                    <p>Overhead Time: <strong id="overhead-readout">0.00</strong> ms</p>
-                    <p>Time Per Target: <strong id="time-per-target-readout">0.00</strong> ms</p>
-                    <p>Scanner A Range: <strong id="scanner-a-range-readout">0.0 - 0.0</strong> in</p>
-                    <p>Scanner B Range: <strong id="scanner-b-range-readout">0.0 - 0.0</strong> in</p>
-                </details>
+                <section id="metrics-panel-simulation" class="metrics-tab-panel" role="tabpanel" aria-labelledby="metrics-tab-simulation">
+                    <p>Density: <strong id="density-readout">0.00</strong> weeds/sq ft</p>
+                    <p>Banded Weeds per sq ft (12" ref): <strong id="banded-weeds-readout">0.00</strong></p>
+                    <p>Banded Share of weeds/sq ft: <strong id="banded-share-readout">0.00</strong>%</p>
+                    <div class="band-share-visual">
+                        <span class="band-share-label">Banded Share</span>
+                        <div class="band-share-track"><div id="banded-share-fill" class="band-share-fill"></div></div>
+                    </div>
+                    <p>Expected Weeds in 20" x 20": <strong id="window-weeds-readout">0.00</strong></p>
+                    <p>Band Width: <strong id="band-width-readout">0.00</strong> in</p>
+                    <p>Coverage Completeness: <strong id="coverage-readout">100.00</strong>%</p>
+                    <p>Coverage Gap: <strong id="coverage-gap-readout">0.00</strong> in</p>
+                    <p id="coverage-warning" class="warning hidden">Coverage gap detected. Targets in the gap cannot be shot.</p>
+                    <p>Target Inflow @ Applied Speed: <strong id="inflow-readout">0.00</strong> /sec</p>
+                    <p>Scanner Capacity: <strong id="capacity-readout">0.00</strong> /sec</p>
+                    <p>Active Targets: <strong id="active-targets-readout">0</strong></p>
+                    <p>Queue Depth: <strong id="queue-depth-readout">0</strong></p>
+                    <p>Shots Fired: <strong id="shots-readout">0</strong></p>
+                    <p>Shots per Second: <strong id="shots-per-second-readout">0.00</strong></p>
+                    <p>Shots per Minute: <strong id="shots-per-minute-readout">0.00</strong></p>
+                    <p>Missed Targets: <strong id="missed-readout">0</strong></p>
+                    <p>Hit Rate: <strong id="hit-rate-readout">0.00</strong>%</p>
+                    <p>Elapsed Runtime: <strong id="elapsed-readout">0.0 s (0.00 min)</strong></p>
+
+                    <details>
+                        <summary>Model Details (Raw Values)</summary>
+                        <p>Raw Modeled Speed: <strong id="raw-speed-readout">0.00</strong> mph</p>
+                        <p>Applied Speed: <strong id="applied-speed-readout">0.00</strong> mph</p>
+                        <p>Shoot Time: <strong id="shoot-time-readout">0.00</strong> ms</p>
+                        <p>Overhead Time: <strong id="overhead-readout">0.00</strong> ms</p>
+                        <p>Time Per Target: <strong id="time-per-target-readout">0.00</strong> ms</p>
+                        <p>Scanner A Range: <strong id="scanner-a-range-readout">0.0 - 0.0</strong> in</p>
+                        <p>Scanner B Range: <strong id="scanner-b-range-readout">0.0 - 0.0</strong> in</p>
+                    </details>
+                </section>
+
+                <section id="metrics-panel-coverage" class="metrics-tab-panel hidden" role="tabpanel" aria-labelledby="metrics-tab-coverage">
+                    <p>Machine Size (Scan Window): <strong id="machine-size-readout">20.0 x 20.0</strong> in</p>
+                    <p>Scan Window Area: <strong id="scan-area-readout">0.00</strong> sq ft</p>
+                    <p>Applied Travel Speed: <strong id="travel-speed-fps-readout">0.00</strong> ft/sec</p>
+                    <p>Machine Width: <strong id="machine-width-ft-readout">0.00</strong> ft</p>
+                    <p>Active Band Width: <strong id="band-width-ft-readout">0.00</strong> ft</p>
+                    <p>Machine Coverage Rate: <strong id="machine-coverage-sqft-hour-readout">0.00</strong> sq ft/hr</p>
+                    <p>Machine Coverage Rate: <strong id="machine-coverage-acres-hour-readout">0.00</strong> acres/hr</p>
+                    <p>Machine Time per Acre: <strong id="machine-hours-acre-readout">0.00</strong> hr/acre</p>
+                    <p>Active Band Coverage: <strong id="band-coverage-sqft-hour-readout">0.00</strong> sq ft/hr</p>
+                    <p>Active Band Coverage: <strong id="band-coverage-acres-hour-readout">0.00</strong> acres/hr</p>
+                    <p>Active Band Time per Acre: <strong id="band-hours-acre-readout">0.00</strong> hr/acre</p>
+                    <p class="control-note">Coverage rates are derived from applied speed and width.</p>
+                </section>
             </aside>
         </section>
     </main>

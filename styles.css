@@ -299,6 +299,39 @@ input[type="range"] {
     gap: 0.42rem;
 }
 
+.metrics-tabs {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.2rem;
+}
+
+.metrics-tab {
+    border: 1px solid var(--line);
+    background: #f7f8f9;
+    color: var(--text);
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.metrics-tab:hover {
+    background: #eef0f2;
+}
+
+.metrics-tab.is-active {
+    background: var(--accent-soft);
+    border-color: #8ec9bb;
+    color: #0a5d48;
+}
+
+.metrics-tab-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.42rem;
+}
+
 .metrics-panel p {
     margin: 0;
     font-size: 0.92rem;
