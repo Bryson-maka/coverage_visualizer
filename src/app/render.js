@@ -1,10 +1,16 @@
 export function createRenderer({ dom, state, core, config }) {
-    const pxPerIn = config.SCAN_DRAW_SIZE_PX / core.SCAN_WIDTH_IN;
+    const pxPerInX = config.SCAN_DRAW_WIDTH_PX / core.SCAN_WIDTH_IN;
+    const pxPerInY = config.SCAN_DRAW_HEIGHT_PX / core.SCAN_HEIGHT_IN;
+    const plantPxPerIn = Math.min(pxPerInX, pxPerInY);
     const coverageDrawPx = config.COVERAGE_DRAW_SIZE_PX;
     const coveragePadPx = config.SCAN_PADDING_PX;
 
-    function inToPx(inches) {
-        return config.SCAN_PADDING_PX + inches * pxPerIn;
+    function inToPxX(inches) {
+        return config.SCAN_PADDING_PX + inches * pxPerInX;
+    }
+
+    function inToPxY(inches) {
+        return config.SCAN_PADDING_PX + inches * pxPerInY;
     }
 
     function createSvgElement(tagName) {
@@ -15,21 +21,25 @@ export function createRenderer({ dom, state, core, config }) {
         dom.gridLayer.innerHTML = '';
 
         for (let inch = 0; inch <= core.SCAN_WIDTH_IN; inch += 1) {
-            const position = inToPx(inch);
+            const xPosition = inToPxX(inch);
 
             const vertical = createSvgElement('line');
-            vertical.setAttribute('x1', String(position));
-            vertical.setAttribute('x2', String(position));
+            vertical.setAttribute('x1', String(xPosition));
+            vertical.setAttribute('x2', String(xPosition));
             vertical.setAttribute('y1', String(config.SCAN_PADDING_PX));
-            vertical.setAttribute('y2', String(config.SCAN_PADDING_PX + config.SCAN_DRAW_SIZE_PX));
+            vertical.setAttribute('y2', String(config.SCAN_PADDING_PX + config.SCAN_DRAW_HEIGHT_PX));
             vertical.setAttribute('class', inch % 5 === 0 ? 'grid-line-major' : 'grid-line');
             dom.gridLayer.appendChild(vertical);
+        }
+
+        for (let inch = 0; inch <= core.SCAN_HEIGHT_IN; inch += 1) {
+            const yPosition = inToPxY(inch);
 
             const horizontal = createSvgElement('line');
             horizontal.setAttribute('x1', String(config.SCAN_PADDING_PX));
-            horizontal.setAttribute('x2', String(config.SCAN_PADDING_PX + config.SCAN_DRAW_SIZE_PX));
-            horizontal.setAttribute('y1', String(position));
-            horizontal.setAttribute('y2', String(position));
+            horizontal.setAttribute('x2', String(config.SCAN_PADDING_PX + config.SCAN_DRAW_WIDTH_PX));
+            horizontal.setAttribute('y1', String(yPosition));
+            horizontal.setAttribute('y2', String(yPosition));
             horizontal.setAttribute('class', inch % 5 === 0 ? 'grid-line-major' : 'grid-line');
             dom.gridLayer.appendChild(horizontal);
         }
@@ -40,44 +50,44 @@ export function createRenderer({ dom, state, core, config }) {
         dom.zoneLayer.innerHTML = '';
 
         const bandRect = createSvgElement('rect');
-        bandRect.setAttribute('x', String(inToPx(state.band.start)));
+        bandRect.setAttribute('x', String(inToPxX(state.band.start)));
         bandRect.setAttribute('y', String(config.SCAN_PADDING_PX));
-        bandRect.setAttribute('width', String(state.band.width * pxPerIn));
-        bandRect.setAttribute('height', String(config.SCAN_DRAW_SIZE_PX));
+        bandRect.setAttribute('width', String(state.band.width * pxPerInX));
+        bandRect.setAttribute('height', String(config.SCAN_DRAW_HEIGHT_PX));
         bandRect.setAttribute('class', 'band-fill');
         dom.bandLayer.appendChild(bandRect);
 
         const scannerARect = createSvgElement('rect');
-        scannerARect.setAttribute('x', String(inToPx(state.zones.scannerA.start)));
+        scannerARect.setAttribute('x', String(inToPxX(state.zones.scannerA.start)));
         scannerARect.setAttribute('y', String(config.SCAN_PADDING_PX));
-        scannerARect.setAttribute('width', String((state.zones.scannerA.end - state.zones.scannerA.start) * pxPerIn));
-        scannerARect.setAttribute('height', String(config.SCAN_DRAW_SIZE_PX));
+        scannerARect.setAttribute('width', String((state.zones.scannerA.end - state.zones.scannerA.start) * pxPerInX));
+        scannerARect.setAttribute('height', String(config.SCAN_DRAW_HEIGHT_PX));
         scannerARect.setAttribute('class', 'zone-a-fill');
         dom.zoneLayer.appendChild(scannerARect);
 
         const scannerBRect = createSvgElement('rect');
-        scannerBRect.setAttribute('x', String(inToPx(state.zones.scannerB.start)));
+        scannerBRect.setAttribute('x', String(inToPxX(state.zones.scannerB.start)));
         scannerBRect.setAttribute('y', String(config.SCAN_PADDING_PX));
-        scannerBRect.setAttribute('width', String((state.zones.scannerB.end - state.zones.scannerB.start) * pxPerIn));
-        scannerBRect.setAttribute('height', String(config.SCAN_DRAW_SIZE_PX));
+        scannerBRect.setAttribute('width', String((state.zones.scannerB.end - state.zones.scannerB.start) * pxPerInX));
+        scannerBRect.setAttribute('height', String(config.SCAN_DRAW_HEIGHT_PX));
         scannerBRect.setAttribute('class', 'zone-b-fill');
         dom.zoneLayer.appendChild(scannerBRect);
 
         const scannerASeparator = createSvgElement('line');
-        const scannerABarX = inToPx(state.zones.scannerA.end);
+        const scannerABarX = inToPxX(state.zones.scannerA.end);
         scannerASeparator.setAttribute('x1', String(scannerABarX));
         scannerASeparator.setAttribute('x2', String(scannerABarX));
         scannerASeparator.setAttribute('y1', String(config.SCAN_PADDING_PX));
-        scannerASeparator.setAttribute('y2', String(config.SCAN_PADDING_PX + config.SCAN_DRAW_SIZE_PX));
+        scannerASeparator.setAttribute('y2', String(config.SCAN_PADDING_PX + config.SCAN_DRAW_HEIGHT_PX));
         scannerASeparator.setAttribute('class', 'zone-separator-a');
         dom.zoneLayer.appendChild(scannerASeparator);
 
         const scannerBSeparator = createSvgElement('line');
-        const scannerBBarX = inToPx(state.zones.scannerB.start);
+        const scannerBBarX = inToPxX(state.zones.scannerB.start);
         scannerBSeparator.setAttribute('x1', String(scannerBBarX));
         scannerBSeparator.setAttribute('x2', String(scannerBBarX));
         scannerBSeparator.setAttribute('y1', String(config.SCAN_PADDING_PX));
-        scannerBSeparator.setAttribute('y2', String(config.SCAN_PADDING_PX + config.SCAN_DRAW_SIZE_PX));
+        scannerBSeparator.setAttribute('y2', String(config.SCAN_PADDING_PX + config.SCAN_DRAW_HEIGHT_PX));
         scannerBSeparator.setAttribute('class', 'zone-separator-b');
         dom.zoneLayer.appendChild(scannerBSeparator);
     }
@@ -94,12 +104,12 @@ export function createRenderer({ dom, state, core, config }) {
             }
 
             const visual = core.computeWeedVisualProfile(weed.size, weed.type);
-            const leafLengthPx = visual.leafLengthIn * pxPerIn * config.PLANT_VISUAL_MAGNIFICATION;
+            const leafLengthPx = visual.leafLengthIn * plantPxPerIn * config.PLANT_VISUAL_MAGNIFICATION;
 
             const group = createSvgElement('g');
             group.setAttribute(
                 'transform',
-                `translate(${inToPx(weed.xIn)} ${inToPx(weed.yIn)}) rotate(${weed.rotationDeg})`
+                `translate(${inToPxX(weed.xIn)} ${inToPxY(weed.yIn)}) rotate(${weed.rotationDeg})`
             );
 
             let visualStateClass = 'weed-live';
@@ -254,8 +264,10 @@ export function createRenderer({ dom, state, core, config }) {
     }
 
     return {
-        inToPx,
-        pxPerIn,
+        inToPxX,
+        inToPxY,
+        pxPerInX,
+        pxPerInY,
         renderGrid,
         renderStaticLayers,
         renderWeeds,

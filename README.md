@@ -1,6 +1,6 @@
 # Laserweeder Module Simulator
 
-Browser-based simulator for dual-scanner laserweeder throughput in a fixed `20 in x 20 in` scan window, plus field coverage planning from modeled speed.
+Browser-based simulator for dual-scanner laserweeder throughput in a fixed `24 in x 20 in` scan window, plus field coverage planning from modeled speed.
 
 Live URL: `https://bryson-maka.github.io/coverage_visualizer/`
 
@@ -11,7 +11,7 @@ Live URL: `https://bryson-maka.github.io/coverage_visualizer/`
   - `Midline + Urgent Fallback`
   - `Bottom-Most First`
 - Runtime flow model:
-  - Weeds move top-to-bottom in a 20" x 20" frame.
+  - Weeds move top-to-bottom in a 24" x 20" frame.
   - Dual scanners service targets within configured zones.
   - Shot/hit/miss and queue metrics update live.
 - Speed modeling:

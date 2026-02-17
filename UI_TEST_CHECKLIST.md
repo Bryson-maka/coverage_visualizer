@@ -15,7 +15,7 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 ## Control Ranges
 
 - [ ] Density slider min/max is `1..250`.
-- [ ] Band width slider min/max is `1..20` inches.
+- [ ] Band width slider min/max is `1..24` inches.
 - [ ] Speed Utilization slider min/max is `50..100%`.
 - [ ] Scanner bar sliders keep user-set positions when band width changes.
 - [ ] Effective scanner ranges in `Model Details` reflect clipping to active band where needed.
@@ -84,10 +84,10 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 
 ## Density Conversion Sanity
 
-- [ ] `Expected in 20" x 20"` increases with density.
-- [ ] At `1 weeds/sq ft`, expected window weeds is about `2.78`.
-- [ ] At `250 weeds/sq ft`, expected window weeds is about `694.44`.
-- [ ] At density `100` and band `6 in`, `Banded Weeds per sq ft` is `50.00` and share is `50.00%`.
+- [ ] `Expected in 24" x 20"` increases with density.
+- [ ] At `1 weeds/sq ft`, expected window weeds is about `3.33`.
+- [ ] At `250 weeds/sq ft`, expected window weeds is about `833.33`.
+- [ ] At density `100` and band `6 in`, `Banded Share of weeds/sq ft` is `50.00%`.
 
 ## Suggested QA Scenarios
 
@@ -100,7 +100,7 @@ Use this checklist to validate simulator behavior in a browser before adding mor
    - Expect lower speed, rising misses, lower hit rate.
 
 3. `Zone Gap`
-   - Band `20`, Scanner A right `7`, Scanner B left `13`.
+   - Band `24`, Scanner A right `9`, Scanner B left `15`.
    - Expect coverage warning and increased misses.
 
 4. `Zone Overlap`

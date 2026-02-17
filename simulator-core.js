@@ -1,7 +1,7 @@
 (function (globalScope) {
     'use strict';
 
-    const SCAN_WIDTH_IN = 20;
+    const SCAN_WIDTH_IN = 24;
     const SCAN_HEIGHT_IN = 20;
     const WINDOW_AREA_SQFT = (SCAN_WIDTH_IN * SCAN_HEIGHT_IN) / 144;
     const REFERENCE_SQFT_WIDTH_IN = 12;

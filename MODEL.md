@@ -4,16 +4,16 @@ This document defines the math and assumptions behind the laserweeder simulator.
 
 ## 1) Coordinate and unit model
 
-- Scanner window size is fixed at `20 in x 20 in`.
+- Scanner window size is fixed at `24 in x 20 in`.
 - Window area in square feet:
-  - `window_area_sqft = (20 * 20) / 144 = 2.777...`
+  - `window_area_sqft = (24 * 20) / 144 = 3.333...`
 - Density conversion:
   - `window_weeds = density_weeds_per_sqft * window_area_sqft`
 
 Examples:
 
-- `1 weeds/sq ft -> 2.78 weeds` expected in the window.
-- `250 weeds/sq ft -> 694.44 weeds` expected in the window.
+- `1 weeds/sq ft -> 3.33 weeds` expected in the window.
+- `250 weeds/sq ft -> 833.33 weeds` expected in the window.
 
 Square-foot banded-load reference metric:
 
@@ -84,6 +84,10 @@ Scanner bars partition/overlap the active band:
 - Scanner A: band start to A-right bar.
 - Scanner B: B-left bar to band end.
 - UI slider values are preserved when band width changes; effective simulation ranges are clipped to band bounds.
+- Default machine geometry uses two `20 in` scanners across a `24 in` combined width:
+  - Scanner A default range `0..20 in`
+  - Scanner B default range `4..24 in`
+  - Default overlap `16 in`
 
 Coverage metrics:
 
@@ -124,7 +128,7 @@ Current limitations (known and intentional):
 
 ## 9) Visual scale mapping
 
-Visual weed size uses physical-inch mapping inside the 20" x 20" window:
+Visual weed size uses physical-inch mapping inside the 24" x 20" window:
 
 - `size 1` leaf length is anchored at `1/16"` (`0.0625 in`).
 - `size 20` leaf length is anchored at `1.25"`.

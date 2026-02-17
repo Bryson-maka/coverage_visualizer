@@ -8,9 +8,9 @@ function near(actual, expected, tolerance = 1e-6) {
     assert.ok(Math.abs(actual - expected) <= tolerance, `Expected ${actual} to be within ${tolerance} of ${expected}`);
 }
 
-test('weedsInWindow converts weeds per sq ft to 20x20 window count', () => {
-    near(core.weedsInWindow(1), 400 / 144);
-    near(core.weedsInWindow(250), 250 * (400 / 144));
+test('weedsInWindow converts weeds per sq ft to 24x20 window count', () => {
+    near(core.weedsInWindow(1), 480 / 144);
+    near(core.weedsInWindow(250), 250 * (480 / 144));
 });
 
 test('banded weed load per sq ft matches 12-inch reference expectation', () => {
@@ -188,6 +188,16 @@ test('coverage metrics report gap and ratio correctly', () => {
     near(metrics.coverageRatio, 0.7, 1e-9);
     assert.equal(metrics.gapWidthIn, 6);
     assert.equal(metrics.hasGap, true);
+});
+
+test('24-inch combined span with 20-inch scanners yields 16-inch overlap by default', () => {
+    const metrics = core.computeCoverageMetrics(0, 24, 20, 4);
+
+    near(metrics.overlapWidthIn, 16, 1e-9);
+    near(metrics.gapWidthIn, 0, 1e-9);
+    near(metrics.coverageRatio, 1, 1e-9);
+    near(metrics.ranges.scannerA.end - metrics.ranges.scannerA.start, 20, 1e-9);
+    near(metrics.ranges.scannerB.end - metrics.ranges.scannerB.start, 20, 1e-9);
 });
 
 test('bottom-up selection picks the lowest visible target in zone', () => {

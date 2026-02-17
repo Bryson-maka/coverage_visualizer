@@ -276,6 +276,21 @@ select {
     background: linear-gradient(130deg, #f8fbfa 0%, #ecf7f4 100%);
 }
 
+.speed-banner-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.45rem;
+}
+
+.speed-banner-button-row {
+    margin-top: 0;
+}
+
+.speed-banner-button-row .btn {
+    min-width: 72px;
+}
+
 .label {
     margin: 0;
     color: var(--muted);
@@ -617,6 +632,24 @@ select {
 
     .simulator-panel {
         order: 1;
+    }
+
+    .speed-banner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .speed-banner-actions {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .speed-banner-button-row {
+        width: 100%;
+    }
+
+    .speed-banner-button-row .btn {
+        flex: 1;
     }
 
     .coverage-settings-grid,

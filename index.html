@@ -12,13 +12,8 @@
         <header class="app-header">
             <div class="app-header-top">
                 <h1>Laserweeder Module Simulator</h1>
-                <div class="button-row header-actions">
-                    <button id="run-button" class="btn btn-primary" type="button">Run</button>
-                    <button id="pause-button" class="btn" type="button">Pause</button>
-                    <button id="reset-button" class="btn" type="button">Reset</button>
-                </div>
             </div>
-            <p>20" x 20" scan-window simulation for throughput, speed, and target execution.</p>
+            <p>24" x 20" scan-window simulation for throughput, speed, and target execution.</p>
         </header>
 
         <section class="app-grid">
@@ -37,7 +32,7 @@
                                 <button type="button" class="set-default-btn" data-default-key="densityPerSqFt">Set Default</button>
                             </span>
                             <input type="range" id="density-slider" min="1" max="250" step="1" value="60">
-                            <small>Expected in 20" x 20": <strong id="window-density">0.00</strong> weeds</small>
+                            <small>Expected in 24" x 20": <strong id="window-density">0.00</strong> weeds</small>
                         </label>
 
                         <label class="control" for="size-slider">
@@ -62,28 +57,28 @@
                     <div class="panel-dropdown-content">
                         <label class="control" for="band-width-slider">
                             <span class="control-header">
-                                <span>Band Width (<span id="band-width-value">6.0</span> in)</span>
+                                <span>Band Width (<span id="band-width-value">24.0</span> in)</span>
                                 <button type="button" class="set-default-btn" data-default-key="bandWidthIn">Set Default</button>
                             </span>
-                            <input type="range" id="band-width-slider" min="1" max="20" step="0.1" value="6">
-                            <small>Centered inside the 20" scan width.</small>
+                            <input type="range" id="band-width-slider" min="1" max="24" step="0.1" value="24">
+                            <small>Centered inside the 24" scan width.</small>
                         </label>
 
                         <label class="control" for="scanner-a-end-slider">
                             <span class="control-header">
-                                <span>Scanner A Right Bar (<span id="scanner-a-end-value">11.0</span> in)</span>
+                                <span>Scanner A Right Bar (<span id="scanner-a-end-value">20.0</span> in)</span>
                                 <button type="button" class="set-default-btn" data-default-key="scannerARightIn">Set Default</button>
                             </span>
-                            <input type="range" id="scanner-a-end-slider" min="0" max="20" step="0.1" value="11">
+                            <input type="range" id="scanner-a-end-slider" min="0" max="24" step="0.1" value="20">
                             <small>Defines right edge of Scanner A coverage.</small>
                         </label>
 
                         <label class="control" for="scanner-b-start-slider">
                             <span class="control-header">
-                                <span>Scanner B Left Bar (<span id="scanner-b-start-value">9.0</span> in)</span>
+                                <span>Scanner B Left Bar (<span id="scanner-b-start-value">4.0</span> in)</span>
                                 <button type="button" class="set-default-btn" data-default-key="scannerBLeftIn">Set Default</button>
                             </span>
-                            <input type="range" id="scanner-b-start-slider" min="0" max="20" step="0.1" value="9">
+                            <input type="range" id="scanner-b-start-slider" min="0" max="24" step="0.1" value="4">
                             <small>Defines left edge of Scanner B coverage.</small>
                         </label>
 
@@ -151,17 +146,24 @@
                         <p class="label">Applied Machine Speed</p>
                         <p class="speed-value"><span id="applied-speed-mph">0.00</span> mph</p>
                     </div>
-                    <p id="speed-cap-note" class="cap-note hidden">Capped at 3.0 mph</p>
+                    <div class="speed-banner-actions">
+                        <p id="speed-cap-note" class="cap-note hidden">Capped at 3.0 mph</p>
+                        <div class="button-row speed-banner-button-row">
+                            <button id="run-button" class="btn btn-primary" type="button">Run</button>
+                            <button id="pause-button" class="btn" type="button">Pause</button>
+                            <button id="reset-button" class="btn" type="button">Reset</button>
+                        </div>
+                    </div>
                 </div>
 
                 <section id="simulation-visual-view" class="visual-view">
-                    <svg id="scan-window" viewBox="0 0 420 420" aria-label="20 inch by 20 inch scanner window">
-                        <rect x="10" y="10" width="400" height="400" class="scan-bg"></rect>
+                    <svg id="scan-window" viewBox="0 0 500 420" aria-label="24 inch by 20 inch scanner window">
+                        <rect x="10" y="10" width="480" height="400" class="scan-bg"></rect>
                         <g id="grid-layer"></g>
                         <g id="band-layer"></g>
                         <g id="zone-layer"></g>
                         <g id="weed-layer"></g>
-                        <rect x="10" y="10" width="400" height="400" class="scan-frame"></rect>
+                        <rect x="10" y="10" width="480" height="400" class="scan-frame"></rect>
                     </svg>
 
                     <div class="legend">
