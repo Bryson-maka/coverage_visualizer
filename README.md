@@ -24,9 +24,9 @@ Open `http://localhost:8080`.
 - 20" x 20" scan window flow (targets move top-to-bottom)
 - Configurable band width and dual scanner ranges
 - Scanner sliders preserve configured values; effective ranges are clipped to active band for simulation math
-- Bottom-up targeting policy per scanner zone
+- Configurable targeting policy (midline with urgent fallback, or bottom-most)
 - Shoot-time model tied to weed size (nonlinear anchors)
-- Speed model with applied cap at `3.0 mph`
+- Speed model with utilization headroom and applied cap at `3.0 mph`
 - Coverage-gap detection and runtime performance metrics
 - Coverage planner tab with machine size, field shape/area, configurable efficiency, and time-based pass painting
 

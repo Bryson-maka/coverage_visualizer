@@ -24,13 +24,20 @@ export function createInitialState(core, config) {
             spawned: 0,
             shots: 0,
             missed: 0,
-            elapsedMs: 0
+            elapsedMs: 0,
+            shotSamples: 0,
+            shotLineYMeanIn: 0,
+            shotMarginSamples: 0,
+            shotExitMarginMeanSec: 0,
+            queueGrowthEwmaPerSec: 0,
+            lastActiveTargets: 0
         },
         model: {
             shootTimeMs: 0,
             timePerTargetMs: 0,
             capacityTargetsPerSecond: 0,
             rawSpeedMph: 0,
+            utilizedRawSpeedMph: 0,
             appliedSpeedMph: 0,
             appliedInchesPerSecond: 0,
             inflowTargetsPerSecond: 0,
@@ -39,7 +46,11 @@ export function createInitialState(core, config) {
             bandedSharePercent: 0,
             coverageRatio: 1,
             coverageGapIn: 0,
-            hasCoverageGap: false
+            hasCoverageGap: false,
+            speedUtilizationPercent: config.DEFAULT_SPEED_UTILIZATION_PERCENT,
+            targetingPolicy: config.DEFAULT_TARGETING_POLICY,
+            targetMidlineYIn: config.DEFAULT_TARGET_MIDLINE_Y_IN,
+            targetUrgentYIn: config.DEFAULT_TARGET_URGENT_Y_IN
         },
         coverage: initialCoverage,
         band: initialBand,

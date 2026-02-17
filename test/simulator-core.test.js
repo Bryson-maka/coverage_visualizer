@@ -201,3 +201,36 @@ test('bottom-up selection picks the lowest visible target in zone', () => {
     const selected = core.selectBottomMostTarget(weeds, 5, 10);
     assert.equal(selected.yIn, 11);
 });
+
+test('midline policy selects target nearest to reference when no urgent targets exist', () => {
+    const weeds = [
+        { xIn: 8, yIn: 6.5, shot: false },
+        { xIn: 8, yIn: 9.8, shot: false },
+        { xIn: 8, yIn: 12.7, shot: false }
+    ];
+
+    const selected = core.selectTargetByPolicy(weeds, 5, 10, 'midline', 10, 16);
+    near(selected.yIn, 9.8, 1e-9);
+});
+
+test('midline policy falls back to bottom-most for urgent targets', () => {
+    const weeds = [
+        { xIn: 8, yIn: 9.9, shot: false },
+        { xIn: 8, yIn: 16.2, shot: false },
+        { xIn: 8, yIn: 17.1, shot: false }
+    ];
+
+    const selected = core.selectTargetByPolicy(weeds, 5, 10, 'midline', 10, 16);
+    near(selected.yIn, 17.1, 1e-9);
+});
+
+test('bottom policy matches bottom-most behavior', () => {
+    const weeds = [
+        { xIn: 8, yIn: 6.5, shot: false },
+        { xIn: 8, yIn: 12.2, shot: false },
+        { xIn: 8, yIn: 10.1, shot: false }
+    ];
+
+    const selected = core.selectTargetByPolicy(weeds, 5, 10, 'bottom', 10, 16);
+    near(selected.yIn, 12.2, 1e-9);
+});

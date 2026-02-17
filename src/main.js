@@ -6,8 +6,10 @@ import { createRenderer } from './app/render.js';
 import { createMetricsPresenter } from './app/metrics.js';
 import { createModelController } from './app/model.js';
 import { createSimulationEngine } from './app/engine.js';
+import { applyDefaultsToDom, bindDefaultControls } from './app/defaults.js';
 
 const dom = getDomRefs();
+applyDefaultsToDom(dom);
 const state = createInitialState(core, APP_CONFIG);
 const renderer = createRenderer({ dom, state, core, config: APP_CONFIG });
 const metrics = createMetricsPresenter({ dom, state, core });
@@ -29,21 +31,31 @@ function setMetricsTab(activeTab) {
 }
 
 function bindEvents() {
+    const resetAndRecomputeSimulation = () => {
+        engine.setRunning(false);
+        engine.resetSimulationState();
+        model.recomputeModel();
+    };
+
     const simulationControls = [
         dom.densitySlider,
         dom.sizeSlider,
         dom.bandWidthSlider,
         dom.scannerAEndSlider,
         dom.scannerBStartSlider,
-        dom.overheadSlider
+        dom.overheadSlider,
+        dom.speedUtilizationSlider,
+        dom.targetingPolicySelect,
+        dom.targetMidlineSlider,
+        dom.targetUrgentSlider
     ];
 
     simulationControls.forEach((control) => {
-        control.addEventListener('input', () => {
-            engine.setRunning(false);
-            engine.resetSimulationState();
-            model.recomputeModel();
-        });
+        if (control.tagName === 'SELECT') {
+            control.addEventListener('change', resetAndRecomputeSimulation);
+        } else {
+            control.addEventListener('input', resetAndRecomputeSimulation);
+        }
     });
 
     const coverageControls = [
@@ -76,9 +88,7 @@ function bindEvents() {
     });
 
     dom.resetButton.addEventListener('click', () => {
-        engine.setRunning(false);
-        engine.resetSimulationState();
-        model.recomputeModel();
+        resetAndRecomputeSimulation();
     });
 
     dom.metricsTabSimulation.addEventListener('click', () => {
@@ -87,6 +97,11 @@ function bindEvents() {
 
     dom.metricsTabCoverage.addEventListener('click', () => {
         setMetricsTab('coverage');
+    });
+
+    bindDefaultControls({
+        dom,
+        onDefaultsChanged: resetAndRecomputeSimulation
     });
 }
 

@@ -500,11 +500,10 @@
         };
     }
 
-    function selectBottomMostTarget(weeds, zoneStartIn, zoneEndIn) {
+    function collectTargetsInZone(weeds, zoneStartIn, zoneEndIn) {
         const start = Math.min(zoneStartIn, zoneEndIn);
         const end = Math.max(zoneStartIn, zoneEndIn);
-
-        let selected = null;
+        const candidates = [];
 
         for (const weed of weeds) {
             if (weed.shot) {
@@ -519,8 +518,61 @@
                 continue;
             }
 
+            candidates.push(weed);
+        }
+
+        return candidates;
+    }
+
+    function selectBottomMostFromCandidates(candidates) {
+        let selected = null;
+
+        for (const weed of candidates) {
             if (!selected || weed.yIn > selected.yIn) {
                 selected = weed;
+            }
+        }
+
+        return selected;
+    }
+
+    function selectBottomMostTarget(weeds, zoneStartIn, zoneEndIn) {
+        const candidates = collectTargetsInZone(weeds, zoneStartIn, zoneEndIn);
+        return selectBottomMostFromCandidates(candidates);
+    }
+
+    function selectTargetByPolicy(weeds, zoneStartIn, zoneEndIn, policy, midlineYIn, urgentYIn) {
+        const candidates = collectTargetsInZone(weeds, zoneStartIn, zoneEndIn);
+
+        if (candidates.length === 0) {
+            return null;
+        }
+
+        if (policy !== 'midline') {
+            return selectBottomMostFromCandidates(candidates);
+        }
+
+        const safeMidlineYIn = clamp(toNumber(midlineYIn, SCAN_HEIGHT_IN / 2), 0, SCAN_HEIGHT_IN);
+        const safeUrgentYIn = clamp(toNumber(urgentYIn, safeMidlineYIn + 0.1), 0, SCAN_HEIGHT_IN);
+
+        const urgentCandidates = candidates.filter((weed) => weed.yIn >= safeUrgentYIn);
+        if (urgentCandidates.length > 0) {
+            return selectBottomMostFromCandidates(urgentCandidates);
+        }
+
+        let selected = candidates[0];
+        let selectedDistance = Math.abs(selected.yIn - safeMidlineYIn);
+
+        for (let index = 1; index < candidates.length; index += 1) {
+            const weed = candidates[index];
+            const distance = Math.abs(weed.yIn - safeMidlineYIn);
+
+            if (
+                distance < selectedDistance ||
+                (distance === selectedDistance && weed.yIn > selected.yIn)
+            ) {
+                selected = weed;
+                selectedDistance = distance;
             }
         }
 
@@ -553,7 +605,8 @@
         computeLeafLengthIn,
         computeLeafCount,
         computeWeedVisualProfile,
-        selectBottomMostTarget
+        selectBottomMostTarget,
+        selectTargetByPolicy
     };
 
     if (typeof module !== 'undefined' && module.exports) {

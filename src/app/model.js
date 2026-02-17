@@ -7,6 +7,10 @@ export function createModelController({ core, dom, state, renderer, metrics, con
             scannerARightIn: Number(dom.scannerAEndSlider.value),
             scannerBLeftIn: Number(dom.scannerBStartSlider.value),
             overheadMs: Number(dom.overheadSlider.value),
+            speedUtilizationPercent: Number(dom.speedUtilizationSlider.value),
+            targetingPolicy: dom.targetingPolicySelect.value,
+            targetMidlineYIn: Number(dom.targetMidlineSlider.value),
+            targetUrgentYIn: Number(dom.targetUrgentSlider.value),
             machineWidthFt: Number(dom.machineWidthInput.value),
             machineLengthFt: Number(dom.machineLengthInput.value),
             fieldAreaAcres: Number(dom.fieldAreaInput.value),
@@ -26,6 +30,9 @@ export function createModelController({ core, dom, state, renderer, metrics, con
         dom.scannerAEndValue.textContent = metrics.format(input.scannerARightIn, 1);
         dom.scannerBStartValue.textContent = metrics.format(input.scannerBLeftIn, 1);
         dom.overheadValue.textContent = metrics.format(input.overheadMs, 0);
+        dom.speedUtilizationValue.textContent = metrics.format(input.speedUtilizationPercent, 0);
+        dom.targetMidlineValue.textContent = metrics.format(input.targetMidlineYIn, 1);
+        dom.targetUrgentValue.textContent = metrics.format(input.targetUrgentYIn, 1);
         dom.windowDensity.textContent = metrics.format(weedsInWindow, 2);
         dom.coverageEfficiencyValue.textContent = metrics.format(input.efficiencyPercent, 0);
         dom.coverageHoursValue.textContent = metrics.format(input.selectedCoverageHours, 1);
@@ -55,7 +62,25 @@ export function createModelController({ core, dom, state, renderer, metrics, con
             timePerTargetMs
         });
 
-        const appliedSpeed = core.computeAppliedSpeedMph(rawSpeedMph, config.SPEED_CAP_MPH);
+        const safeSpeedUtilizationPercent = core.clamp(input.speedUtilizationPercent, 50, 100);
+        const speedUtilizationRatio = safeSpeedUtilizationPercent / 100;
+        const safeTargetingPolicy = input.targetingPolicy === 'bottom' ? 'bottom' : 'midline';
+        const safeTargetMidlineYIn = core.clamp(input.targetMidlineYIn, 0, core.SCAN_HEIGHT_IN);
+        const safeTargetUrgentYIn = core.clamp(
+            Math.max(input.targetUrgentYIn, safeTargetMidlineYIn + 0.1),
+            0,
+            core.SCAN_HEIGHT_IN
+        );
+        const normalizedInput = {
+            ...input,
+            speedUtilizationPercent: safeSpeedUtilizationPercent,
+            targetingPolicy: safeTargetingPolicy,
+            targetMidlineYIn: safeTargetMidlineYIn,
+            targetUrgentYIn: safeTargetUrgentYIn
+        };
+
+        const utilizedRawSpeedMph = rawSpeedMph * speedUtilizationRatio;
+        const appliedSpeed = core.computeAppliedSpeedMph(utilizedRawSpeedMph, config.SPEED_CAP_MPH);
         const inflowTargetsPerSecond = core.computeTargetFlowTargetsPerSecond(
             input.densityPerSqFt,
             state.band.width,
@@ -76,7 +101,8 @@ export function createModelController({ core, dom, state, renderer, metrics, con
             shootTimeMs,
             timePerTargetMs,
             capacityTargetsPerSecond,
-            rawSpeedMph: appliedSpeed.rawSpeedMph,
+            rawSpeedMph,
+            utilizedRawSpeedMph,
             appliedSpeedMph: appliedSpeed.appliedSpeedMph,
             appliedInchesPerSecond: core.mphToInchesPerSecond(appliedSpeed.appliedSpeedMph),
             inflowTargetsPerSecond,
@@ -85,11 +111,19 @@ export function createModelController({ core, dom, state, renderer, metrics, con
             bandedSharePercent: bandedLoad.bandPercent,
             coverageRatio: coverageMetrics.coverageRatio,
             coverageGapIn: coverageMetrics.gapWidthIn,
-            hasCoverageGap: coverageMetrics.hasGap
+            hasCoverageGap: coverageMetrics.hasGap,
+            speedUtilizationPercent: safeSpeedUtilizationPercent,
+            targetingPolicy: safeTargetingPolicy,
+            targetMidlineYIn: safeTargetMidlineYIn,
+            targetUrgentYIn: safeTargetUrgentYIn
         };
         state.coverage = coveragePlan;
 
-        syncControlReadouts(input, shootTimeMs);
+        dom.speedUtilizationSlider.value = String(safeSpeedUtilizationPercent);
+        dom.targetMidlineSlider.value = safeTargetMidlineYIn.toFixed(1);
+        dom.targetUrgentSlider.value = safeTargetUrgentYIn.toFixed(1);
+
+        syncControlReadouts(normalizedInput, shootTimeMs);
         renderer.renderStaticLayers();
         renderer.renderCoverageField();
         metrics.updateMetrics();

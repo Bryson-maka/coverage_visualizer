@@ -72,9 +72,22 @@ body {
     font-size: 0.92rem;
 }
 
+.control-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
 .control small {
     color: var(--muted);
     font-size: 0.78rem;
+}
+
+.defaults-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin: -0.1rem 0 0.1rem;
 }
 
 .readout-control {
@@ -144,6 +157,35 @@ select {
 
 .btn-primary:hover {
     background: #06664f;
+}
+
+.set-default-btn {
+    border: 1px solid #b8c5cc;
+    background: #f4f8fa;
+    color: #1f3a45;
+    border-radius: 999px;
+    padding: 0.16rem 0.52rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.set-default-btn:hover {
+    background: #e6f1f6;
+    border-color: #9fb6c2;
+}
+
+.set-default-btn.is-saved {
+    background: #def7ea;
+    border-color: #7bc9ab;
+    color: #0f5132;
+}
+
+.set-default-reset {
+    font-size: 0.74rem;
+    padding: 0.22rem 0.6rem;
 }
 
 .simulator-panel {

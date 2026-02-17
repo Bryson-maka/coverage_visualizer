@@ -14,10 +14,13 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 
 - [ ] Density slider min/max is `1..250`.
 - [ ] Band width slider min/max is `1..20` inches.
+- [ ] Speed Utilization slider min/max is `50..100%`.
 - [ ] Scanner bar sliders keep user-set positions when band width changes.
 - [ ] Effective scanner ranges in `Model Details` reflect clipping to active band where needed.
 - [ ] Overhead slider updates value label.
 - [ ] Size slider updates shoot-time readout (nonlinear).
+- [ ] Targeting policy switch updates `Model Details` policy readout.
+- [ ] Midline/Urgent sliders update labels and details readouts.
 
 ## Shoot-Time Profile Checks
 
@@ -57,6 +60,9 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 
 - [ ] Shots per second increases while shots are being fired.
 - [ ] Shots per minute tracks shots/sec x 60.
+- [ ] Shot-line center remains near configured midline under moderate load.
+- [ ] Queue growth rate trends toward zero or negative when utilization target is reduced.
+- [ ] Scanner utilization values remain below `100%` with headroom enabled.
 
 ## Coverage Data Tab
 

@@ -1,4 +1,38 @@
 export function createSimulationEngine({ core, dom, state, renderer, metrics, config }) {
+    function countActiveTargets() {
+        return state.weeds.filter((weed) => !weed.shot && weed.yIn >= 0 && weed.yIn <= core.SCAN_HEIGHT_IN).length;
+    }
+
+    function trackShotObservability(targetYIn) {
+        state.stats.shotSamples += 1;
+        state.stats.shotLineYMeanIn += (targetYIn - state.stats.shotLineYMeanIn) / state.stats.shotSamples;
+
+        if (state.model.appliedInchesPerSecond > 0) {
+            const exitMarginSec = Math.max(0, (core.SCAN_HEIGHT_IN - targetYIn) / state.model.appliedInchesPerSecond);
+            state.stats.shotMarginSamples += 1;
+            state.stats.shotExitMarginMeanSec += (
+                exitMarginSec - state.stats.shotExitMarginMeanSec
+            ) / state.stats.shotMarginSamples;
+        }
+    }
+
+    function trackQueueGrowth(deltaSeconds) {
+        if (deltaSeconds <= 0) {
+            return;
+        }
+
+        const activeTargets = countActiveTargets();
+        const deltaActive = activeTargets - state.stats.lastActiveTargets;
+        const growthPerSecond = deltaActive / deltaSeconds;
+        const alpha = 0.2;
+
+        state.stats.queueGrowthEwmaPerSec = state.stats.elapsedMs <= deltaSeconds * 1000
+            ? growthPerSecond
+            : ((1 - alpha) * state.stats.queueGrowthEwmaPerSec) + (alpha * growthPerSecond);
+
+        state.stats.lastActiveTargets = activeTargets;
+    }
+
     function resetSimulationState() {
         state.spawnCarry = 0;
         state.nextWeedId = 1;
@@ -7,6 +41,12 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
         state.stats.shots = 0;
         state.stats.missed = 0;
         state.stats.elapsedMs = 0;
+        state.stats.shotSamples = 0;
+        state.stats.shotLineYMeanIn = 0;
+        state.stats.shotMarginSamples = 0;
+        state.stats.shotExitMarginMeanSec = 0;
+        state.stats.queueGrowthEwmaPerSec = 0;
+        state.stats.lastActiveTargets = 0;
 
         state.scanners.forEach((scanner) => {
             scanner.cooldownMs = 0;
@@ -32,10 +72,18 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
         state.spawnCarry -= spawnCount;
 
         for (let i = 0; i < spawnCount; i += 1) {
+            const useMidlineSpawnBand = state.model.targetingPolicy === 'midline';
+            const midlineYIn = core.clamp(state.model.targetMidlineYIn, 0, core.SCAN_HEIGHT_IN);
+            const spawnCeilingIn = Math.max(0.5, midlineYIn);
+            const spawnTopJitterIn = 0.2;
+            const spawnedYIn = useMidlineSpawnBand
+                ? (Math.sqrt(Math.random()) * spawnCeilingIn) - (Math.random() * spawnTopJitterIn)
+                : -Math.random() * 0.4;
+
             state.weeds.push({
                 id: state.nextWeedId,
                 xIn: state.band.start + Math.random() * state.band.width,
-                yIn: -Math.random() * 0.4,
+                yIn: spawnedYIn,
                 size: Number(dom.sizeSlider.value),
                 type: Math.random() < 0.5 ? 'broadleaf' : 'grass',
                 rotationDeg: Math.random() * 360,
@@ -58,24 +106,39 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
     }
 
     function processScanner(scanner, deltaMs, zoneStartIn, zoneEndIn) {
-        scanner.cooldownMs = Math.max(0, scanner.cooldownMs - deltaMs);
+        scanner.cooldownMs -= deltaMs;
 
-        if (scanner.cooldownMs > 0) {
-            return;
+        let shotsThisStep = 0;
+        while (
+            scanner.cooldownMs <= 0 &&
+            shotsThisStep < config.MAX_SHOTS_PER_STEP_PER_SCANNER
+        ) {
+            const target = core.selectTargetByPolicy(
+                state.weeds,
+                zoneStartIn,
+                zoneEndIn,
+                state.model.targetingPolicy,
+                state.model.targetMidlineYIn,
+                state.model.targetUrgentYIn
+            );
+
+            if (!target) {
+                scanner.cooldownMs = 0;
+                break;
+            }
+
+            target.shot = true;
+            target.shotAgeMs = 0;
+
+            state.stats.shots += 1;
+            scanner.shots += 1;
+            trackShotObservability(target.yIn);
+
+            scanner.cooldownMs += state.model.timePerTargetMs;
+            shotsThisStep += 1;
         }
 
-        const target = core.selectBottomMostTarget(state.weeds, zoneStartIn, zoneEndIn);
-
-        if (!target) {
-            return;
-        }
-
-        target.shot = true;
-        target.shotAgeMs = 0;
-
-        state.stats.shots += 1;
-        scanner.shots += 1;
-        scanner.cooldownMs = state.model.timePerTargetMs;
+        scanner.cooldownMs = Math.max(0, scanner.cooldownMs);
     }
 
     function processScanners(deltaMs) {
@@ -123,6 +186,7 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
         moveWeeds(distanceIn, deltaMs);
         processScanners(deltaMs);
         removeExpiredWeeds();
+        trackQueueGrowth(deltaSeconds);
         renderer.renderWeeds();
         metrics.updateMetrics();
     }

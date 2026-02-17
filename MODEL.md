@@ -63,10 +63,11 @@ Raw speed is the throughput-limited speed needed to keep up with target demand i
 - Raw mph:
   - `raw_mph = raw_ips * 3600 / 63360`
 
-Displayed/animated speed uses cap logic:
+Displayed/animated speed applies utilization headroom then cap:
 
-- `applied_mph = min(raw_mph, 3.0)`
-- Cap note appears when `raw_mph > 3.0`
+- `headroom_mph = raw_mph * (utilization_percent / 100)`
+- `applied_mph = min(headroom_mph, 3.0)`
+- Cap note appears when `headroom_mph > 3.0`
 
 ## 5) Inflow and simulation motion
 
@@ -98,11 +99,12 @@ Interpretation:
 
 ## 7) Targeting behavior
 
-Current strategy is intentionally simple and deterministic:
+Two targeting strategies are available:
 
-- Each scanner always picks the **bottom-most unshot** target in its zone.
-- This approximates shooting targets closest to window exit first.
-- Target-to-target motion is abstracted into overhead, not per-hop distance.
+- `bottom`: scanner picks bottom-most unshot target in zone.
+- `midline`: scanner targets nearest to configured midline Y, but switches to bottom-most when targets exceed urgent threshold.
+
+The `midline` strategy keeps the shot line centered while still protecting near-exit targets.
 
 ## 8) Stability and limitations
 
@@ -164,3 +166,19 @@ Pass painting model:
 - Square fields use constant pass area.
 - Circle fields use true strip area from circle geometry.
 - Coverage paint fills full passes first, then partially fills the active pass based on remaining covered area.
+
+## 11) Throughput stability controls
+
+The simulation applies a utilization target to raw speed before cap:
+
+- `headroom_speed_mph = raw_speed_mph * (utilization_percent / 100)`
+- `applied_speed_mph = min(headroom_speed_mph, speed_cap_mph)`
+
+This reduces sustained operation at 100% service utilization, improving queue stability and hit-rate consistency.
+
+Runtime observability metrics:
+
+- Shot-line center (average shot Y)
+- Average exit margin at shot time (seconds to frame exit when shot)
+- Queue growth rate (`targets/sec`, EWMA)
+- Per-scanner utilization (% of theoretical scanner service rate)
