@@ -1,0 +1,14 @@
+{
+  "name": "laserweeder-module-simulator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "20x20 laserweeder dual-scanner simulator",
+  "scripts": {
+    "ci": "npm run check && npm test",
+    "test": "node --test",
+    "check": "node --check simulator-core.js && find src -name '*.js' -print0 | xargs -0 -n1 node --check"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

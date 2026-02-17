@@ -1,1 +1,365 @@
-/* Add any custom styles here */
+:root {
+    --bg: #f3f4ef;
+    --panel: #ffffff;
+    --text: #0d1b1e;
+    --muted: #54646f;
+    --line: #d2d9dd;
+    --accent: #0b7a5f;
+    --accent-soft: #d6f1ea;
+    --warn: #b45309;
+    --zone-a: rgba(22, 163, 74, 0.2);
+    --zone-b: rgba(2, 132, 199, 0.2);
+    --band: rgba(217, 119, 6, 0.2);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+    background: radial-gradient(circle at 20% 0%, #eef5ea 0%, #e4ecee 50%, #dde6e8 100%);
+    color: var(--text);
+}
+
+.app-shell {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.app-header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.app-header p {
+    margin: 0.35rem 0 1.1rem;
+    color: var(--muted);
+}
+
+.app-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 340px minmax(420px, 1fr) 340px;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1rem;
+    box-shadow: 0 8px 24px rgba(11, 25, 28, 0.08);
+}
+
+.controls-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.controls-panel h2,
+.metrics-panel h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.1rem;
+}
+
+.control {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.92rem;
+}
+
+.control small {
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+
+.readout-control {
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.6rem;
+    background: #fbfcfd;
+}
+
+.control-value {
+    margin: 0.05rem 0 0.1rem;
+    font-size: 1rem;
+}
+
+input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+}
+
+.button-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+}
+
+.control-note {
+    margin: 0.15rem 0 0;
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.btn {
+    border: 1px solid var(--line);
+    background: #f7f8f9;
+    color: var(--text);
+    padding: 0.48rem 0.82rem;
+    border-radius: 9px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background: #eef0f2;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+.btn-primary:hover {
+    background: #06664f;
+}
+
+.simulator-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.speed-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.6rem 0.8rem;
+    background: linear-gradient(130deg, #f8fbfa 0%, #ecf7f4 100%);
+}
+
+.label {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+
+.speed-value {
+    margin: 0.12rem 0 0;
+    font-size: 1.45rem;
+    font-weight: 700;
+}
+
+.cap-note {
+    margin: 0;
+    color: var(--warn);
+    font-weight: 600;
+    font-size: 0.88rem;
+}
+
+.hidden {
+    display: none;
+}
+
+#scan-window {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #eef2e5;
+}
+
+.scan-bg {
+    fill: #ece7d8;
+}
+
+.scan-frame {
+    fill: none;
+    stroke: #58646c;
+    stroke-width: 2;
+}
+
+.grid-line {
+    stroke: rgba(88, 100, 108, 0.16);
+    stroke-width: 1;
+}
+
+.grid-line-major {
+    stroke: rgba(88, 100, 108, 0.26);
+    stroke-width: 1.2;
+}
+
+.band-fill {
+    fill: var(--band);
+}
+
+.zone-a-fill {
+    fill: var(--zone-a);
+}
+
+.zone-b-fill {
+    fill: var(--zone-b);
+}
+
+.zone-separator-a {
+    stroke: #166534;
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+}
+
+.zone-separator-b {
+    stroke: #0369a1;
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+}
+
+.weed-leaf {
+    fill: currentColor;
+    stroke: rgba(0, 0, 0, 0.22);
+    stroke-width: 0.8;
+    vector-effect: non-scaling-stroke;
+}
+
+.weed-live.weed-broadleaf {
+    color: #1f8f4c;
+}
+
+.weed-live.weed-grass {
+    color: #2f7a3a;
+}
+
+.weed-shot {
+    color: #ef4444;
+    opacity: 0.9;
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+    color: #2d3a40;
+}
+
+.legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.legend-box {
+    width: 14px;
+    height: 14px;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    border-radius: 2px;
+}
+
+.legend-box.band {
+    background: var(--band);
+}
+
+.legend-box.zone-a {
+    background: var(--zone-a);
+}
+
+.legend-box.zone-b {
+    background: var(--zone-b);
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.legend-dot.weed {
+    background: #1d8b42;
+}
+
+.legend-dot.shot {
+    background: #ef4444;
+}
+
+.metrics-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.42rem;
+}
+
+.metrics-panel p {
+    margin: 0;
+    font-size: 0.92rem;
+}
+
+.band-share-visual {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.1rem 0 0.2rem;
+}
+
+.band-share-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    min-width: 72px;
+}
+
+.band-share-track {
+    flex: 1;
+    height: 8px;
+    border-radius: 999px;
+    background: #dde5e8;
+    overflow: hidden;
+}
+
+.band-share-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #22c55e, #15803d);
+    transition: width 120ms ease;
+}
+
+.warning {
+    margin: 0.15rem 0 0.25rem;
+    color: #b45309;
+    font-weight: 600;
+}
+
+details {
+    margin-top: 0.35rem;
+    border-top: 1px solid var(--line);
+    padding-top: 0.45rem;
+}
+
+summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+
+@media (max-width: 1200px) {
+    .app-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .controls-panel,
+    .metrics-panel {
+        order: 2;
+    }
+
+    .simulator-panel {
+        order: 1;
+    }
+}

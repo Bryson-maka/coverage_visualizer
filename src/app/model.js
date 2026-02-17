@@ -1,0 +1,82 @@
+export function createModelController({ core, dom, state, renderer, metrics, config }) {
+    function getInputConfig() {
+        return {
+            densityPerSqFt: Number(dom.densitySlider.value),
+            size: Number(dom.sizeSlider.value),
+            bandWidthIn: Number(dom.bandWidthSlider.value),
+            scannerARightIn: Number(dom.scannerAEndSlider.value),
+            scannerBLeftIn: Number(dom.scannerBStartSlider.value),
+            overheadMs: Number(dom.overheadSlider.value)
+        };
+    }
+
+    function syncControlReadouts(input, shootTimeMs) {
+        const weedsInWindow = core.weedsInWindow(input.densityPerSqFt);
+
+        dom.densityValue.textContent = metrics.format(input.densityPerSqFt, 0);
+        dom.sizeValue.textContent = metrics.format(input.size, 0);
+        dom.shootTimeValue.textContent = metrics.format(shootTimeMs, 2);
+        dom.bandWidthValue.textContent = metrics.format(input.bandWidthIn, 1);
+        dom.scannerAEndValue.textContent = metrics.format(input.scannerARightIn, 1);
+        dom.scannerBStartValue.textContent = metrics.format(input.scannerBLeftIn, 1);
+        dom.overheadValue.textContent = metrics.format(input.overheadMs, 0);
+        dom.windowDensity.textContent = metrics.format(weedsInWindow, 2);
+    }
+
+    function recomputeModel() {
+        const input = getInputConfig();
+
+        state.band = core.getBandRange(input.bandWidthIn);
+
+        const coverageMetrics = core.computeCoverageMetrics(
+            state.band.start,
+            state.band.end,
+            input.scannerARightIn,
+            input.scannerBLeftIn
+        );
+        state.zones = coverageMetrics.ranges;
+
+        const shootTimeMs = core.computeShootTimeMs(input.size);
+        const timePerTargetMs = core.computeTimePerTargetMs(shootTimeMs, input.overheadMs);
+        const capacityTargetsPerSecond = core.computeCapacityTargetsPerSecond(state.scanners.length, timePerTargetMs);
+
+        const rawSpeedMph = core.computeRawSpeedMph({
+            densityPerSqFt: input.densityPerSqFt,
+            bandWidthIn: state.band.width,
+            scannerCount: state.scanners.length,
+            timePerTargetMs
+        });
+
+        const appliedSpeed = core.computeAppliedSpeedMph(rawSpeedMph, config.SPEED_CAP_MPH);
+        const inflowTargetsPerSecond = core.computeTargetFlowTargetsPerSecond(
+            input.densityPerSqFt,
+            state.band.width,
+            appliedSpeed.appliedSpeedMph
+        );
+        const bandedLoad = core.computeBandedWeedLoadPerSqFt(input.densityPerSqFt, state.band.width);
+
+        state.model = {
+            shootTimeMs,
+            timePerTargetMs,
+            capacityTargetsPerSecond,
+            rawSpeedMph: appliedSpeed.rawSpeedMph,
+            appliedSpeedMph: appliedSpeed.appliedSpeedMph,
+            appliedInchesPerSecond: core.mphToInchesPerSecond(appliedSpeed.appliedSpeedMph),
+            inflowTargetsPerSecond,
+            isCapped: appliedSpeed.isCapped,
+            bandedWeedsPerSqFt: bandedLoad.bandedWeedsPerSqFt,
+            bandedSharePercent: bandedLoad.bandPercent,
+            coverageRatio: coverageMetrics.coverageRatio,
+            coverageGapIn: coverageMetrics.gapWidthIn,
+            hasCoverageGap: coverageMetrics.hasGap
+        };
+
+        syncControlReadouts(input, shootTimeMs);
+        renderer.renderStaticLayers();
+        metrics.updateMetrics();
+    }
+
+    return {
+        recomputeModel
+    };
+}

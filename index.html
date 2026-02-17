@@ -3,151 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weed Pressure - Coverage Visualizer</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>Laserweeder Module Simulator</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold text-center mb-8">Weed Pressure - Coverage Visualizer</h1>
-        <div class="flex flex-col md:flex-row gap-8">
-            <div class="w-full md:w-2/4 bg-white rounded-lg shadow-md p-4">
-                <svg id="field-view" viewBox="0 0 400 400" class="w-full h-auto">
-                    <!-- Background will be added here by JavaScript -->
-                    
-                    <!-- Vertical ruler -->
-                    <line x1="25" y1="25" x2="25" y2="375" stroke="black" />
-                    <!-- Horizontal ruler -->
-                    <line x1="25" y1="375" x2="375" y2="375" stroke="black" />
-                    
-                    <!-- Inch marks and labels will be added here by JavaScript -->
-                    <g id="inch-marks"></g>
-                </svg>
-            </div>
-            <div class="w-full md:w-1/5 bg-white rounded-lg shadow-md p-4 mb-4">
-                <h2 class="text-xl font-semibold mb-4">Acres Covered / Hour (10 acre block for reference)</h2>
-                <svg id="acres-view" viewBox="0 0 200 200" class="w-full h-auto">
-                    <!-- Acres visualization will be added here by JavaScript -->
-                </svg>
-                <p id="acres-per-hour-display" class="text-center mt-2 font-semibold">Acres per Hour: 0.00</p>
-                <div id="acres-key" class="flex justify-center items-center mt-2">
-                    <!-- Key will be added here by JavaScript -->
+<body>
+    <main class="app-shell">
+        <header class="app-header">
+            <h1>Laserweeder Module Simulator</h1>
+            <p>20" x 20" scan-window simulation for throughput, speed, and target execution.</p>
+        </header>
+
+        <section class="app-grid">
+            <aside class="panel controls-panel">
+                <h2>Field + Module Inputs</h2>
+
+                <label class="control" for="density-slider">
+                    <span>Weed Density (<span id="density-value">1</span> weeds/sq ft)</span>
+                    <input type="range" id="density-slider" min="1" max="250" step="1" value="60">
+                    <small>Expected in 20" x 20": <strong id="window-density">0.00</strong> weeds</small>
+                </label>
+
+                <label class="control" for="size-slider">
+                    <span>Average Weed Size (<span id="size-value">10</span>)</span>
+                    <input type="range" id="size-slider" min="1" max="20" step="1" value="10">
+                    <small>Dose and shoot time come from a nonlinear size profile.</small>
+                </label>
+
+                <div class="control readout-control">
+                    <span>Shoot Time From Weed Size</span>
+                    <p class="control-value"><strong id="shoot-time-value">0.00</strong> ms</p>
+                    <small>Profile anchors: size 1=25ms, size 2=30ms, size 3=40ms, size 20=250ms.</small>
                 </div>
-            </div>
-            <div class="w-full md:w-1/6">
-                <div class="bg-white rounded-lg shadow-md p-4 mb-4">
-                    <h2 class="text-xl font-semibold mb-4">Controls</h2>
-                    <div class="mb-1">
-                        <label for="density-slider" class="block mb-1">Weed Density (weeds/sq ft)</label>
-                        <input type="range" id="density-slider" min="1" max="20" value="10" step="0.5" class="w-full">
-                        <span id="density-value" class="block mt-1 text-sm"></span>
-                    </div>
-                    <div class="mb-1">
-                        <label for="size-slider" class="block mb-1">Weed Size</label>
-                        <input type="range" id="size-slider" min="1" max="20" value="4" class="w-full">
-                        <span id="size-value" class="block mt-1 text-sm">4</span>
-                    </div>
+
+                <label class="control" for="band-width-slider">
+                    <span>Band Width (<span id="band-width-value">6.0</span> in)</span>
+                    <input type="range" id="band-width-slider" min="1" max="20" step="0.1" value="6">
+                    <small>Centered inside the 20" scan width.</small>
+                </label>
+
+                <label class="control" for="scanner-a-end-slider">
+                    <span>Scanner A Right Bar (<span id="scanner-a-end-value">11.0</span> in)</span>
+                    <input type="range" id="scanner-a-end-slider" min="0" max="20" step="0.1" value="11">
+                    <small>Defines right edge of Scanner A coverage.</small>
+                </label>
+
+                <label class="control" for="scanner-b-start-slider">
+                    <span>Scanner B Left Bar (<span id="scanner-b-start-value">9.0</span> in)</span>
+                    <input type="range" id="scanner-b-start-slider" min="0" max="20" step="0.1" value="9">
+                    <small>Defines left edge of Scanner B coverage.</small>
+                </label>
+
+                <label class="control" for="overhead-slider">
+                    <span>Scanner Overhead (<span id="overhead-value">60</span> ms)</span>
+                    <input type="range" id="overhead-slider" min="0" max="300" step="1" value="60">
+                    <small>Average target-to-target travel + control overhead per shot.</small>
+                </label>
+
+                <div class="button-row">
+                    <button id="run-button" class="btn btn-primary" type="button">Run</button>
+                    <button id="pause-button" class="btn" type="button">Pause</button>
+                    <button id="reset-button" class="btn" type="button">Reset</button>
+                </div>
+                <p class="control-note">Changing inputs resets the run to keep comparisons consistent.</p>
+            </aside>
+
+            <section class="panel simulator-panel">
+                <div class="speed-banner">
                     <div>
-                        <label for="band-width-slider" class="block mb-1">Band Width (inches)</label>
-                        <input type="range" id="band-width-slider" min="1" max="12" value="12" step="1" class="w-full">
-                        <span id="band-width-value" class="block mt-1 text-sm">12"</span>
+                        <p class="label">Applied Machine Speed</p>
+                        <p class="speed-value"><span id="applied-speed-mph">0.00</span> mph</p>
                     </div>
-                    <div class="mt-1">
-                        <h3 class="text-lg font-semibold mb-2">Machine Size</h3>
-                        <div class="flex flex-wrap gap-2">
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="machine-size" value="6.6" class="form-radio">
-                                <span class="ml-2">6.6'</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="machine-size" value="13.3" class="form-radio">
-                                <span class="ml-2">13.3'</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="machine-size" value="20" class="form-radio">
-                                <span class="ml-2">20'</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="machine-size" value="40" class="form-radio" checked>
-                                <span class="ml-2">40'</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="machine-size" value="60" class="form-radio">
-                                <span class="ml-2">60'</span>
-                            </label>
-                        </div>
-                    </div>
+                    <p id="speed-cap-note" class="cap-note hidden">Capped at 3.0 mph</p>
                 </div>
-            </div>
-            <div class="w-full md:w-1/4">
-                <div id="speed-output" class="bg-white rounded-lg shadow-md p-4">
-                    <h3 class="text-lg font-semibold mb-1">Performance Metrics</h3>
-                    
-                    <!-- Speed in mph and kph -->
-                    <p>Speed: <span id="speed-mph">0.00</span> mph / <span id="speed-kph">0.00</span> kph</p>
-                    
-                    <!-- Weeds in Band -->
-                    <p>Weeds in Band: <span id="weeds-in-band">0</span></p>
-                
-                    <!-- Performance Data Dropdown -->
-                    <div class="mt-1">
-                        <button id="toggle-performance-data" class="text-blue-500 underline focus:outline-none">
-                            Show Performance Data
-                        </button>
-                        <div id="performance-data" class="mt-1 hidden">
-                            <p>Shoot Time: <span id="shoot-time">0.00</span> ms</p>
-                            <p>Servo Overhead: <span id="servo-overhead">0.00</span> ms</p>
-                            <p>Time per Weed: <span id="time-per-weed">0.00</span> ms</p>
-                            <p>Lasers per Band: <span id="lasers-per-band">0</span></p>
-                            <p>Total Time for 1 sq ft: <span id="total-time">0.00</span> ms</p>
-                            <p>Speed: <span id="speed-ftmin">0.00</span> ft/min / <span id="speed-mmin">0.00</span> m/min</p>
-                            <p>Machine Width: <span id="machine-width">0</span> ft</p>
-                            <p>Acres per Hour: <span id="acres-per-hour">0.00</span></p>
-                        </div>
-                    </div>
-                
-                    <!-- Performance Improvements Dropdown (Password Protected) -->
-                    <div class="mt-4">
-                        <button id="toggle-performance-improvements" class="text-blue-500 underline focus:outline-none">
-                            Show Performance Improvements
-                        </button>
-                        <div id="performance-improvements" class="mt-1 hidden">
-                            <p>Servo Overhead: <span id="servo-overhead-improve">0.00</span> ms
-                                <button id="modify-servo" class="ml-2 text-blue-500 underline focus:outline-none">
-                                    Modify
-                                </button>
-                            </p>
-                            <!-- Password prompt and slider for Servo Overhead -->
-                            <div id="servo-slider-section" class="hidden">
-                                <input type="password" id="password-input" placeholder="Enter password" class="mb-2 p-1 border rounded">
-                                <button id="password-enter" class="ml-2 bg-blue-500 text-white p-1 rounded">Enter</button>
-                                <button id="password-cancel" class="ml-2 bg-red-500 text-white p-1 rounded">Cancel</button>
-                
-                                <input type="range" id="servo-slider" min="1" max="120" value="60" class="w-full mt-2">
-                            </div>
-                        </div>
-                    </div>
+
+                <svg id="scan-window" viewBox="0 0 420 420" aria-label="20 inch by 20 inch scanner window">
+                    <rect x="10" y="10" width="400" height="400" class="scan-bg"></rect>
+                    <g id="grid-layer"></g>
+                    <g id="band-layer"></g>
+                    <g id="zone-layer"></g>
+                    <g id="weed-layer"></g>
+                    <rect x="10" y="10" width="400" height="400" class="scan-frame"></rect>
+                </svg>
+
+                <div class="legend">
+                    <span><i class="legend-box band"></i>Band Target Area</span>
+                    <span><i class="legend-box zone-a"></i>Scanner A Zone</span>
+                    <span><i class="legend-box zone-b"></i>Scanner B Zone</span>
+                    <span><i class="legend-dot weed"></i>Live Target</span>
+                    <span><i class="legend-dot shot"></i>Shot Target</span>
                 </div>
-        </div>
-    </div>
+            </section>
 
-    <svg width="0" height="0">
-        <defs>
-            <pattern id="soilTexture" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                <rect width="100" height="100" fill="#e0d6c2"/>
-                <circle cx="10" cy="10" r="1" fill="#b5a285" opacity="0.7"/>
-                <circle cx="30" cy="40" r="1.5" fill="#b5a285" opacity="0.7"/>
-                <circle cx="70" cy="70" r="1" fill="#b5a285" opacity="0.7"/>
-                <circle cx="90" cy="20" r="1.2" fill="#b5a285" opacity="0.7"/>
-            </pattern>
-            <linearGradient id="leaf-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#7cfc00;stop-opacity:1" />
-                <stop offset="50%" style="stop-color:#32cd32;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#228B22;stop-opacity:1" />
-            </linearGradient>
-        </defs>
-    </svg>
+            <aside class="panel metrics-panel">
+                <h2>Simulation Metrics</h2>
+                <p>Density: <strong id="density-readout">0.00</strong> weeds/sq ft</p>
+                <p>Banded Weeds per sq ft (12" ref): <strong id="banded-weeds-readout">0.00</strong></p>
+                <p>Banded Share of weeds/sq ft: <strong id="banded-share-readout">0.00</strong>%</p>
+                <div class="band-share-visual">
+                    <span class="band-share-label">Banded Share</span>
+                    <div class="band-share-track"><div id="banded-share-fill" class="band-share-fill"></div></div>
+                </div>
+                <p>Expected Weeds in 20" x 20": <strong id="window-weeds-readout">0.00</strong></p>
+                <p>Band Width: <strong id="band-width-readout">0.00</strong> in</p>
+                <p>Coverage Completeness: <strong id="coverage-readout">100.00</strong>%</p>
+                <p>Coverage Gap: <strong id="coverage-gap-readout">0.00</strong> in</p>
+                <p id="coverage-warning" class="warning hidden">Coverage gap detected. Targets in the gap cannot be shot.</p>
+                <p>Target Inflow @ Applied Speed: <strong id="inflow-readout">0.00</strong> /sec</p>
+                <p>Scanner Capacity: <strong id="capacity-readout">0.00</strong> /sec</p>
+                <p>Active Targets: <strong id="active-targets-readout">0</strong></p>
+                <p>Queue Depth: <strong id="queue-depth-readout">0</strong></p>
+                <p>Shots Fired: <strong id="shots-readout">0</strong></p>
+                <p>Shots per Second: <strong id="shots-per-second-readout">0.00</strong></p>
+                <p>Shots per Minute: <strong id="shots-per-minute-readout">0.00</strong></p>
+                <p>Missed Targets: <strong id="missed-readout">0</strong></p>
+                <p>Hit Rate: <strong id="hit-rate-readout">0.00</strong>%</p>
+                <p>Elapsed Runtime: <strong id="elapsed-readout">0.0 s (0.00 min)</strong></p>
 
-    <script src="script.js"></script>
+                <details>
+                    <summary>Model Details (Raw Values)</summary>
+                    <p>Raw Modeled Speed: <strong id="raw-speed-readout">0.00</strong> mph</p>
+                    <p>Applied Speed: <strong id="applied-speed-readout">0.00</strong> mph</p>
+                    <p>Shoot Time: <strong id="shoot-time-readout">0.00</strong> ms</p>
+                    <p>Overhead Time: <strong id="overhead-readout">0.00</strong> ms</p>
+                    <p>Time Per Target: <strong id="time-per-target-readout">0.00</strong> ms</p>
+                    <p>Scanner A Range: <strong id="scanner-a-range-readout">0.0 - 0.0</strong> in</p>
+                    <p>Scanner B Range: <strong id="scanner-b-range-readout">0.0 - 0.0</strong> in</p>
+                </details>
+            </aside>
+        </section>
+    </main>
+
+    <script src="simulator-core.js"></script>
+    <script type="module" src="src/main.js"></script>
 </body>
 </html>
