@@ -62,7 +62,7 @@ export function createModelController({ core, dom, state, renderer, metrics, con
             timePerTargetMs
         });
 
-        const safeSpeedUtilizationPercent = core.clamp(input.speedUtilizationPercent, 50, 100);
+        const safeSpeedUtilizationPercent = core.clamp(input.speedUtilizationPercent, 50, 120);
         const speedUtilizationRatio = safeSpeedUtilizationPercent / 100;
         const safeTargetingPolicy = input.targetingPolicy === 'bottom' ? 'bottom' : 'midline';
         const safeTargetMidlineYIn = core.clamp(input.targetMidlineYIn, 0, core.SCAN_HEIGHT_IN);

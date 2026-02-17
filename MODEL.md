@@ -63,11 +63,12 @@ Raw speed is the throughput-limited speed needed to keep up with target demand i
 - Raw mph:
   - `raw_mph = raw_ips * 3600 / 63360`
 
-Displayed/animated speed applies utilization headroom then cap:
+Displayed/animated speed applies utilization scaling then cap:
 
 - `headroom_mph = raw_mph * (utilization_percent / 100)`
 - `applied_mph = min(headroom_mph, 3.0)`
 - Cap note appears when `headroom_mph > 3.0`
+- Utilization control range is `50%..120%` (default `99%`).
 
 ## 5) Inflow and simulation motion
 

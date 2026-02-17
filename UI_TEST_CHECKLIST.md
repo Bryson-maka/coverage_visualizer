@@ -16,7 +16,7 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 
 - [ ] Density slider min/max is `1..250`.
 - [ ] Band width slider min/max is `1..24` inches.
-- [ ] Speed Utilization slider min/max is `50..100%`.
+- [ ] Speed Utilization slider min/max is `50..120%`.
 - [ ] Scanner bar sliders keep user-set positions when band width changes.
 - [ ] Effective scanner ranges in `Model Details` reflect clipping to active band where needed.
 - [ ] Overhead slider updates value label.
