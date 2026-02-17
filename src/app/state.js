@@ -1,5 +1,14 @@
 export function createInitialState(core, config) {
     const initialBand = core.getBandRange(config.INITIAL_BAND_WIDTH_IN);
+    const initialCoverage = core.computeFieldCoveragePlan({
+        speedMph: 0,
+        machineWidthFt: config.DEFAULT_MACHINE_WIDTH_FT,
+        machineLengthFt: config.DEFAULT_MACHINE_LENGTH_FT,
+        fieldAreaAcres: config.DEFAULT_FIELD_AREA_ACRES,
+        fieldShape: config.DEFAULT_FIELD_SHAPE,
+        efficiencyPercent: config.DEFAULT_FIELD_EFFICIENCY_PERCENT,
+        selectedHours: config.DEFAULT_COVERAGE_TIME_HOURS
+    });
 
     return {
         running: false,
@@ -30,18 +39,9 @@ export function createInitialState(core, config) {
             bandedSharePercent: 0,
             coverageRatio: 1,
             coverageGapIn: 0,
-            hasCoverageGap: false,
-            scanAreaSqFt: 0,
-            travelFeetPerSecond: 0,
-            machineWidthFt: 0,
-            bandWidthFt: 0,
-            machineCoverageSqFtPerHour: 0,
-            machineCoverageAcresPerHour: 0,
-            machineHoursPerAcre: 0,
-            bandCoverageSqFtPerHour: 0,
-            bandCoverageAcresPerHour: 0,
-            bandHoursPerAcre: 0
+            hasCoverageGap: false
         },
+        coverage: initialCoverage,
         band: initialBand,
         zones: core.normalizeScannerRanges(
             initialBand.start,

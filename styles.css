@@ -94,6 +94,17 @@ input[type="range"] {
     accent-color: var(--accent);
 }
 
+input[type="number"],
+select {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.42rem 0.5rem;
+    background: #fff;
+    color: var(--text);
+    font: inherit;
+}
+
 .button-row {
     display: flex;
     gap: 0.5rem;
@@ -141,6 +152,12 @@ input[type="range"] {
     gap: 0.75rem;
 }
 
+.visual-view {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
 .speed-banner {
     display: flex;
     justify-content: space-between;
@@ -181,11 +198,28 @@ input[type="range"] {
     background: #eef2e5;
 }
 
+#coverage-field-window {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #e8efe4;
+}
+
 .scan-bg {
     fill: #ece7d8;
 }
 
+.coverage-bg {
+    fill: #e7ece0;
+}
+
 .scan-frame {
+    fill: none;
+    stroke: #58646c;
+    stroke-width: 2;
+}
+
+.coverage-frame {
     fill: none;
     stroke: #58646c;
     stroke-width: 2;
@@ -223,6 +257,38 @@ input[type="range"] {
     stroke: #0369a1;
     stroke-width: 2;
     stroke-dasharray: 6 4;
+}
+
+.coverage-field-boundary {
+    fill: none;
+    stroke: #334155;
+    stroke-width: 2;
+}
+
+.coverage-field-uncovered {
+    fill: rgba(203, 213, 225, 0.55);
+}
+
+.coverage-field-covered {
+    fill: rgba(16, 185, 129, 0.62);
+}
+
+.coverage-pass-separator {
+    stroke: rgba(30, 41, 59, 0.24);
+    stroke-width: 1;
+}
+
+.coverage-active-pass-box {
+    fill: none;
+    stroke: rgba(245, 158, 11, 0.9);
+    stroke-width: 2;
+    stroke-dasharray: 5 4;
+}
+
+.coverage-tractor-marker {
+    fill: #f97316;
+    stroke: #7c2d12;
+    stroke-width: 1;
 }
 
 .weed-leaf {
@@ -293,6 +359,41 @@ input[type="range"] {
     background: #ef4444;
 }
 
+.legend-box.coverage-field {
+    background: rgba(51, 65, 85, 0.18);
+}
+
+.legend-box.coverage-covered {
+    background: rgba(16, 185, 129, 0.62);
+}
+
+.legend-box.coverage-pending {
+    background: rgba(203, 213, 225, 0.55);
+}
+
+.legend-dot.coverage-active {
+    background: #f97316;
+}
+
+.coverage-visual-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+}
+
+.coverage-visual-card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.6rem;
+    background: linear-gradient(140deg, #f8fcf6 0%, #edf8f4 100%);
+}
+
+.coverage-visual-value {
+    margin: 0.1rem 0 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
 .metrics-panel {
     display: flex;
     flex-direction: column;
@@ -330,6 +431,22 @@ input[type="range"] {
     display: flex;
     flex-direction: column;
     gap: 0.42rem;
+}
+
+.coverage-settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+}
+
+.coverage-kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.6rem;
+    background: #fafcfb;
 }
 
 .metrics-panel p {
@@ -394,5 +511,10 @@ summary {
 
     .simulator-panel {
         order: 1;
+    }
+
+    .coverage-settings-grid,
+    .coverage-visual-cards {
+        grid-template-columns: 1fr;
     }
 }

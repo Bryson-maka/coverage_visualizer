@@ -54,17 +54,27 @@ export function createMetricsPresenter({ dom, state, core }) {
         dom.scannerARangeReadout.textContent = `${format(state.zones.scannerA.start, 1)} - ${format(state.zones.scannerA.end, 1)}`;
         dom.scannerBRangeReadout.textContent = `${format(state.zones.scannerB.start, 1)} - ${format(state.zones.scannerB.end, 1)}`;
 
-        dom.machineSizeReadout.textContent = `${format(core.SCAN_WIDTH_IN, 1)} x ${format(core.SCAN_HEIGHT_IN, 1)}`;
-        dom.scanAreaReadout.textContent = format(state.model.scanAreaSqFt, 2);
-        dom.travelSpeedFpsReadout.textContent = format(state.model.travelFeetPerSecond, 2);
-        dom.machineWidthFtReadout.textContent = format(state.model.machineWidthFt, 2);
-        dom.bandWidthFtReadout.textContent = format(state.model.bandWidthFt, 2);
-        dom.machineCoverageSqFtHourReadout.textContent = format(state.model.machineCoverageSqFtPerHour, 2);
-        dom.machineCoverageAcresHourReadout.textContent = format(state.model.machineCoverageAcresPerHour, 4);
-        dom.machineHoursAcreReadout.textContent = formatFinite(state.model.machineHoursPerAcre, 2);
-        dom.bandCoverageSqFtHourReadout.textContent = format(state.model.bandCoverageSqFtPerHour, 2);
-        dom.bandCoverageAcresHourReadout.textContent = format(state.model.bandCoverageAcresPerHour, 4);
-        dom.bandHoursAcreReadout.textContent = formatFinite(state.model.bandHoursPerAcre, 2);
+        const coverage = state.coverage;
+        const activePassLabel = coverage.activePassNumber
+            ? `${coverage.activePassNumber} (${format(coverage.activePassCoveragePercent, 1)}%)`
+            : (coverage.completionPercent >= 100 ? 'Complete' : 'N/A');
+
+        dom.coverageSpeedReadout.textContent = format(state.model.appliedSpeedMph, 2);
+        dom.coverageTravelFpsReadout.textContent = format(coverage.travelFeetPerSecond, 2);
+        dom.coverageRateSqFtHourReadout.textContent = format(coverage.coverageSqFtPerHour, 2);
+        dom.coverageRateAcresHourReadout.textContent = format(coverage.coverageAcresPerHour, 3);
+        dom.coverageFieldAreaReadout.textContent = format(coverage.fieldAreaAcres, 2);
+        dom.coverageFieldWidthReadout.textContent = format(coverage.fieldWidthFt, 2);
+        dom.coverageHoursToFinishReadout.textContent = formatFinite(coverage.timeToCoverHours, 2);
+        dom.coverageCoveredAreaReadout.textContent = format(coverage.coveredAcres, 2);
+        dom.coveragePercentReadout.textContent = format(coverage.completionPercent, 2);
+        dom.coveragePassesReadout.textContent = `${coverage.completedPasses} / ${coverage.totalPasses}`;
+        dom.coverageActivePassReadout.textContent = activePassLabel;
+
+        dom.visualMachineSizeReadout.textContent = `${format(coverage.machineWidthFt, 1)} x ${format(coverage.machineLengthFt, 1)}`;
+        dom.visualFieldReadout.textContent = `${format(coverage.fieldAreaAcres, 1)} ac ${coverage.fieldShapeLabel}`;
+        dom.visualRateReadout.textContent = format(coverage.coverageAcresPerHour, 2);
+        dom.visualCompletionReadout.textContent = format(coverage.completionPercent, 1);
     }
 
     return {

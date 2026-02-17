@@ -28,7 +28,7 @@ Open `http://localhost:8080`.
 - Shoot-time model tied to weed size (nonlinear anchors)
 - Speed model with applied cap at `3.0 mph`
 - Coverage-gap detection and runtime performance metrics
-- Tabbed metrics view with speed-based machine coverage data
+- Coverage planner tab with machine size, field shape/area, configurable efficiency, and time-based pass painting
 
 ## Default Startup Settings
 

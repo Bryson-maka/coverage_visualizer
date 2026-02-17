@@ -77,22 +77,58 @@
                     <p id="speed-cap-note" class="cap-note hidden">Capped at 3.0 mph</p>
                 </div>
 
-                <svg id="scan-window" viewBox="0 0 420 420" aria-label="20 inch by 20 inch scanner window">
-                    <rect x="10" y="10" width="400" height="400" class="scan-bg"></rect>
-                    <g id="grid-layer"></g>
-                    <g id="band-layer"></g>
-                    <g id="zone-layer"></g>
-                    <g id="weed-layer"></g>
-                    <rect x="10" y="10" width="400" height="400" class="scan-frame"></rect>
-                </svg>
+                <section id="simulation-visual-view" class="visual-view">
+                    <svg id="scan-window" viewBox="0 0 420 420" aria-label="20 inch by 20 inch scanner window">
+                        <rect x="10" y="10" width="400" height="400" class="scan-bg"></rect>
+                        <g id="grid-layer"></g>
+                        <g id="band-layer"></g>
+                        <g id="zone-layer"></g>
+                        <g id="weed-layer"></g>
+                        <rect x="10" y="10" width="400" height="400" class="scan-frame"></rect>
+                    </svg>
 
-                <div class="legend">
-                    <span><i class="legend-box band"></i>Band Target Area</span>
-                    <span><i class="legend-box zone-a"></i>Scanner A Zone</span>
-                    <span><i class="legend-box zone-b"></i>Scanner B Zone</span>
-                    <span><i class="legend-dot weed"></i>Live Target</span>
-                    <span><i class="legend-dot shot"></i>Shot Target</span>
-                </div>
+                    <div class="legend">
+                        <span><i class="legend-box band"></i>Band Target Area</span>
+                        <span><i class="legend-box zone-a"></i>Scanner A Zone</span>
+                        <span><i class="legend-box zone-b"></i>Scanner B Zone</span>
+                        <span><i class="legend-dot weed"></i>Live Target</span>
+                        <span><i class="legend-dot shot"></i>Shot Target</span>
+                    </div>
+                </section>
+
+                <section id="coverage-visual-view" class="visual-view hidden">
+                    <div class="coverage-visual-cards">
+                        <div class="coverage-visual-card">
+                            <p class="label">Machine Size</p>
+                            <p class="coverage-visual-value"><span id="visual-machine-size-readout">0.0 x 0.0</span> ft</p>
+                        </div>
+                        <div class="coverage-visual-card">
+                            <p class="label">Field</p>
+                            <p class="coverage-visual-value"><span id="visual-field-readout">0.0 ac</span></p>
+                        </div>
+                        <div class="coverage-visual-card">
+                            <p class="label">Coverage Rate</p>
+                            <p class="coverage-visual-value"><span id="visual-rate-readout">0.00</span> ac/hr</p>
+                        </div>
+                        <div class="coverage-visual-card">
+                            <p class="label">Selected Time Completion</p>
+                            <p class="coverage-visual-value"><span id="visual-completion-readout">0.0</span>%</p>
+                        </div>
+                    </div>
+
+                    <svg id="coverage-field-window" viewBox="0 0 420 420" aria-label="Field coverage progress">
+                        <rect x="10" y="10" width="400" height="400" class="coverage-bg"></rect>
+                        <g id="coverage-field-layer"></g>
+                        <rect x="10" y="10" width="400" height="400" class="coverage-frame"></rect>
+                    </svg>
+
+                    <div class="legend coverage-legend">
+                        <span><i class="legend-box coverage-field"></i>Field Boundary</span>
+                        <span><i class="legend-box coverage-covered"></i>Covered Passes</span>
+                        <span><i class="legend-box coverage-pending"></i>Remaining Area</span>
+                        <span><i class="legend-dot coverage-active"></i>Active Pass</span>
+                    </div>
+                </section>
             </section>
 
             <aside class="panel metrics-panel">
@@ -157,18 +193,62 @@
                 </section>
 
                 <section id="metrics-panel-coverage" class="metrics-tab-panel hidden" role="tabpanel" aria-labelledby="metrics-tab-coverage">
-                    <p>Machine Size (Scan Window): <strong id="machine-size-readout">20.0 x 20.0</strong> in</p>
-                    <p>Scan Window Area: <strong id="scan-area-readout">0.00</strong> sq ft</p>
-                    <p>Applied Travel Speed: <strong id="travel-speed-fps-readout">0.00</strong> ft/sec</p>
-                    <p>Machine Width: <strong id="machine-width-ft-readout">0.00</strong> ft</p>
-                    <p>Active Band Width: <strong id="band-width-ft-readout">0.00</strong> ft</p>
-                    <p>Machine Coverage Rate: <strong id="machine-coverage-sqft-hour-readout">0.00</strong> sq ft/hr</p>
-                    <p>Machine Coverage Rate: <strong id="machine-coverage-acres-hour-readout">0.00</strong> acres/hr</p>
-                    <p>Machine Time per Acre: <strong id="machine-hours-acre-readout">0.00</strong> hr/acre</p>
-                    <p>Active Band Coverage: <strong id="band-coverage-sqft-hour-readout">0.00</strong> sq ft/hr</p>
-                    <p>Active Band Coverage: <strong id="band-coverage-acres-hour-readout">0.00</strong> acres/hr</p>
-                    <p>Active Band Time per Acre: <strong id="band-hours-acre-readout">0.00</strong> hr/acre</p>
-                    <p class="control-note">Coverage rates are derived from applied speed and width.</p>
+                    <div class="coverage-settings-grid">
+                        <label class="control" for="machine-width-input">
+                            <span>Machine Width (ft)</span>
+                            <input type="number" id="machine-width-input" min="1" max="120" step="0.1" value="20">
+                            <small>Coverage uses speed x machine width x efficiency.</small>
+                        </label>
+
+                        <label class="control" for="machine-length-input">
+                            <span>Machine Length (ft)</span>
+                            <input type="number" id="machine-length-input" min="1" max="80" step="0.1" value="25">
+                            <small>Display and planning context.</small>
+                        </label>
+
+                        <label class="control" for="field-area-input">
+                            <span>Field Size (acres)</span>
+                            <input type="number" id="field-area-input" min="1" max="2000" step="1" value="40">
+                            <small>Total area to cover.</small>
+                        </label>
+
+                        <label class="control" for="field-shape-select">
+                            <span>Field Shape</span>
+                            <select id="field-shape-select">
+                                <option value="square" selected>Square</option>
+                                <option value="circle">Circle</option>
+                            </select>
+                            <small>Pass paint map uses this boundary.</small>
+                        </label>
+                    </div>
+
+                    <label class="control" for="coverage-efficiency-slider">
+                        <span>Field Efficiency (<span id="coverage-efficiency-value">80</span>%)</span>
+                        <input type="range" id="coverage-efficiency-slider" min="30" max="100" step="1" value="80">
+                        <small>Default is 80%; includes turns/overlap/operational losses.</small>
+                    </label>
+
+                    <label class="control" for="coverage-hours-slider">
+                        <span>Selected Paint Time (<span id="coverage-hours-value">1.0</span> hr)</span>
+                        <input type="range" id="coverage-hours-slider" min="0.1" max="12" step="0.1" value="1">
+                        <small>Field map paints coverage at this elapsed duration.</small>
+                    </label>
+
+                    <div class="coverage-kpi-grid">
+                        <p>Applied Speed from Simulation: <strong id="coverage-speed-readout">0.00</strong> mph</p>
+                        <p>Travel Speed: <strong id="coverage-travel-fps-readout">0.00</strong> ft/sec</p>
+                        <p>Coverage Rate: <strong id="coverage-rate-sqft-hour-readout">0.00</strong> sq ft/hr</p>
+                        <p>Coverage Rate: <strong id="coverage-rate-acres-hour-readout">0.00</strong> acres/hr</p>
+                        <p>Field Area: <strong id="coverage-field-area-readout">0.00</strong> acres</p>
+                        <p>Field Width: <strong id="coverage-field-width-readout">0.00</strong> ft</p>
+                        <p>Estimated Time to Full Coverage: <strong id="coverage-hours-to-finish-readout">N/A</strong> hr</p>
+                        <p>Covered in Selected Time: <strong id="coverage-covered-area-readout">0.00</strong> acres</p>
+                        <p>Completion at Selected Time: <strong id="coverage-percent-readout">0.00</strong>%</p>
+                        <p>Passes Completed: <strong id="coverage-passes-readout">0 / 0</strong></p>
+                        <p>Active Pass: <strong id="coverage-active-pass-readout">N/A</strong></p>
+                    </div>
+
+                    <p class="control-note">Coverage KPI is based on simulation speed and your planner inputs.</p>
                 </section>
             </aside>
         </section>

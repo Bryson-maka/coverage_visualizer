@@ -14,6 +14,12 @@ export function getDomRefs() {
         scannerAEndSlider: requireElement('scanner-a-end-slider'),
         scannerBStartSlider: requireElement('scanner-b-start-slider'),
         overheadSlider: requireElement('overhead-slider'),
+        machineWidthInput: requireElement('machine-width-input'),
+        machineLengthInput: requireElement('machine-length-input'),
+        fieldAreaInput: requireElement('field-area-input'),
+        fieldShapeSelect: requireElement('field-shape-select'),
+        coverageEfficiencySlider: requireElement('coverage-efficiency-slider'),
+        coverageHoursSlider: requireElement('coverage-hours-slider'),
 
         densityValue: requireElement('density-value'),
         sizeValue: requireElement('size-value'),
@@ -23,6 +29,8 @@ export function getDomRefs() {
         scannerBStartValue: requireElement('scanner-b-start-value'),
         overheadValue: requireElement('overhead-value'),
         windowDensity: requireElement('window-density'),
+        coverageEfficiencyValue: requireElement('coverage-efficiency-value'),
+        coverageHoursValue: requireElement('coverage-hours-value'),
 
         runButton: requireElement('run-button'),
         pauseButton: requireElement('pause-button'),
@@ -32,6 +40,8 @@ export function getDomRefs() {
         metricsTabCoverage: requireElement('metrics-tab-coverage'),
         metricsPanelSimulation: requireElement('metrics-panel-simulation'),
         metricsPanelCoverage: requireElement('metrics-panel-coverage'),
+        simulationVisualView: requireElement('simulation-visual-view'),
+        coverageVisualView: requireElement('coverage-visual-view'),
 
         appliedSpeedMph: requireElement('applied-speed-mph'),
         speedCapNote: requireElement('speed-cap-note'),
@@ -64,21 +74,27 @@ export function getDomRefs() {
         scannerARangeReadout: requireElement('scanner-a-range-readout'),
         scannerBRangeReadout: requireElement('scanner-b-range-readout'),
 
-        machineSizeReadout: requireElement('machine-size-readout'),
-        scanAreaReadout: requireElement('scan-area-readout'),
-        travelSpeedFpsReadout: requireElement('travel-speed-fps-readout'),
-        machineWidthFtReadout: requireElement('machine-width-ft-readout'),
-        bandWidthFtReadout: requireElement('band-width-ft-readout'),
-        machineCoverageSqFtHourReadout: requireElement('machine-coverage-sqft-hour-readout'),
-        machineCoverageAcresHourReadout: requireElement('machine-coverage-acres-hour-readout'),
-        machineHoursAcreReadout: requireElement('machine-hours-acre-readout'),
-        bandCoverageSqFtHourReadout: requireElement('band-coverage-sqft-hour-readout'),
-        bandCoverageAcresHourReadout: requireElement('band-coverage-acres-hour-readout'),
-        bandHoursAcreReadout: requireElement('band-hours-acre-readout'),
+        coverageSpeedReadout: requireElement('coverage-speed-readout'),
+        coverageTravelFpsReadout: requireElement('coverage-travel-fps-readout'),
+        coverageRateSqFtHourReadout: requireElement('coverage-rate-sqft-hour-readout'),
+        coverageRateAcresHourReadout: requireElement('coverage-rate-acres-hour-readout'),
+        coverageFieldAreaReadout: requireElement('coverage-field-area-readout'),
+        coverageFieldWidthReadout: requireElement('coverage-field-width-readout'),
+        coverageHoursToFinishReadout: requireElement('coverage-hours-to-finish-readout'),
+        coverageCoveredAreaReadout: requireElement('coverage-covered-area-readout'),
+        coveragePercentReadout: requireElement('coverage-percent-readout'),
+        coveragePassesReadout: requireElement('coverage-passes-readout'),
+        coverageActivePassReadout: requireElement('coverage-active-pass-readout'),
+
+        visualMachineSizeReadout: requireElement('visual-machine-size-readout'),
+        visualFieldReadout: requireElement('visual-field-readout'),
+        visualRateReadout: requireElement('visual-rate-readout'),
+        visualCompletionReadout: requireElement('visual-completion-readout'),
 
         gridLayer: requireElement('grid-layer'),
         bandLayer: requireElement('band-layer'),
         zoneLayer: requireElement('zone-layer'),
-        weedLayer: requireElement('weed-layer')
+        weedLayer: requireElement('weed-layer'),
+        coverageFieldLayer: requireElement('coverage-field-layer')
     };
 }

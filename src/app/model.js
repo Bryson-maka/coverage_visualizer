@@ -6,7 +6,13 @@ export function createModelController({ core, dom, state, renderer, metrics, con
             bandWidthIn: Number(dom.bandWidthSlider.value),
             scannerARightIn: Number(dom.scannerAEndSlider.value),
             scannerBLeftIn: Number(dom.scannerBStartSlider.value),
-            overheadMs: Number(dom.overheadSlider.value)
+            overheadMs: Number(dom.overheadSlider.value),
+            machineWidthFt: Number(dom.machineWidthInput.value),
+            machineLengthFt: Number(dom.machineLengthInput.value),
+            fieldAreaAcres: Number(dom.fieldAreaInput.value),
+            fieldShape: dom.fieldShapeSelect.value,
+            efficiencyPercent: Number(dom.coverageEfficiencySlider.value),
+            selectedCoverageHours: Number(dom.coverageHoursSlider.value)
         };
     }
 
@@ -21,6 +27,8 @@ export function createModelController({ core, dom, state, renderer, metrics, con
         dom.scannerBStartValue.textContent = metrics.format(input.scannerBLeftIn, 1);
         dom.overheadValue.textContent = metrics.format(input.overheadMs, 0);
         dom.windowDensity.textContent = metrics.format(weedsInWindow, 2);
+        dom.coverageEfficiencyValue.textContent = metrics.format(input.efficiencyPercent, 0);
+        dom.coverageHoursValue.textContent = metrics.format(input.selectedCoverageHours, 1);
     }
 
     function recomputeModel() {
@@ -54,11 +62,15 @@ export function createModelController({ core, dom, state, renderer, metrics, con
             appliedSpeed.appliedSpeedMph
         );
         const bandedLoad = core.computeBandedWeedLoadPerSqFt(input.densityPerSqFt, state.band.width);
-        const coverageRates = core.computeCoverageRates(
-            appliedSpeed.appliedSpeedMph,
-            core.SCAN_WIDTH_IN,
-            state.band.width
-        );
+        const coveragePlan = core.computeFieldCoveragePlan({
+            speedMph: appliedSpeed.appliedSpeedMph,
+            machineWidthFt: input.machineWidthFt,
+            machineLengthFt: input.machineLengthFt,
+            fieldAreaAcres: input.fieldAreaAcres,
+            fieldShape: input.fieldShape,
+            efficiencyPercent: input.efficiencyPercent,
+            selectedHours: input.selectedCoverageHours
+        });
 
         state.model = {
             shootTimeMs,
@@ -73,21 +85,13 @@ export function createModelController({ core, dom, state, renderer, metrics, con
             bandedSharePercent: bandedLoad.bandPercent,
             coverageRatio: coverageMetrics.coverageRatio,
             coverageGapIn: coverageMetrics.gapWidthIn,
-            hasCoverageGap: coverageMetrics.hasGap,
-            scanAreaSqFt: coverageRates.scanAreaSqFt,
-            travelFeetPerSecond: coverageRates.travelFeetPerSecond,
-            machineWidthFt: coverageRates.machineWidthFt,
-            bandWidthFt: coverageRates.bandWidthFt,
-            machineCoverageSqFtPerHour: coverageRates.machineCoverageSqFtPerHour,
-            machineCoverageAcresPerHour: coverageRates.machineCoverageAcresPerHour,
-            machineHoursPerAcre: coverageRates.machineHoursPerAcre,
-            bandCoverageSqFtPerHour: coverageRates.bandCoverageSqFtPerHour,
-            bandCoverageAcresPerHour: coverageRates.bandCoverageAcresPerHour,
-            bandHoursPerAcre: coverageRates.bandHoursPerAcre
+            hasCoverageGap: coverageMetrics.hasGap
         };
+        state.coverage = coveragePlan;
 
         syncControlReadouts(input, shootTimeMs);
         renderer.renderStaticLayers();
+        renderer.renderCoverageField();
         metrics.updateMetrics();
     }
 

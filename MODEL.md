@@ -138,18 +138,29 @@ This keeps relative size semantics consistent while improving visibility.
 
 ## 10) Coverage data derived from speed
 
-The Coverage Data tab converts applied speed into area coverage rates.
+The Coverage Data tab is a planning view driven by the simulator's **applied speed**.
+
+Planner inputs:
+
+- Machine width (ft)
+- Machine length (ft) for context display
+- Field area (acres)
+- Field shape (`square` or `circle`)
+- Field efficiency (`80%` default, configurable)
+- Selected paint time (`1.0 hr` default)
+
+Coverage formulas:
 
 - `travel_ft_per_hour = applied_mph * 5280`
-- `travel_ft_per_second = travel_ft_per_hour / 3600`
-- `machine_width_ft = 20 / 12`
-- `band_width_ft = band_width_in / 12`
-- `machine_sqft_per_hour = travel_ft_per_hour * machine_width_ft`
-- `band_sqft_per_hour = travel_ft_per_hour * band_width_ft`
-- `acres_per_hour = sqft_per_hour / 43560`
-- `hours_per_acre = 1 / acres_per_hour` (shown as `N/A` when speed is zero)
+- `raw_coverage_sqft_per_hour = travel_ft_per_hour * machine_width_ft`
+- `effective_coverage_sqft_per_hour = raw_coverage_sqft_per_hour * (efficiency_percent / 100)`
+- `effective_coverage_acres_per_hour = effective_coverage_sqft_per_hour / 43560`
+- `time_to_cover_hours = field_area_sqft / effective_coverage_sqft_per_hour` (shown as `N/A` when speed is zero)
+- `covered_sqft_at_selected_time = min(field_area_sqft, effective_coverage_sqft_per_hour * selected_hours)`
 
-The tab shows both:
+Pass painting model:
 
-- Full machine-width coverage (20-inch scanner width)
-- Active-band coverage (selected band width)
+- The field is split into vertical passes with width equal to machine width.
+- Square fields use constant pass area.
+- Circle fields use true strip area from circle geometry.
+- Coverage paint fills full passes first, then partially fills the active pass based on remaining covered area.

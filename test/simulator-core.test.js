@@ -115,6 +115,64 @@ test('coverage rates handle zero speed without NaN', () => {
     assert.equal(coverage.bandHoursPerAcre, Number.POSITIVE_INFINITY);
 });
 
+test('field coverage plan computes rate, duration, and pass progress', () => {
+    const plan = core.computeFieldCoveragePlan({
+        speedMph: 3,
+        machineWidthFt: 20,
+        machineLengthFt: 25,
+        fieldAreaAcres: 40,
+        fieldShape: 'square',
+        efficiencyPercent: 80,
+        selectedHours: 1
+    });
+
+    near(plan.coverageAcresPerHour, 5.8181818181, 1e-6);
+    near(plan.timeToCoverHours, 6.875, 1e-9);
+    near(plan.coveredAcres, 5.8181818181, 1e-6);
+    near(plan.completionPercent, 14.5454545454, 1e-6);
+    assert.equal(plan.totalPasses, 66);
+    assert.equal(plan.completedPasses, 9);
+    assert.equal(plan.activePassNumber, 10);
+    near(plan.activePassCoveragePercent, 60, 1e-9);
+});
+
+test('field coverage plan supports circle shape and zero speed', () => {
+    const plan = core.computeFieldCoveragePlan({
+        speedMph: 0,
+        machineWidthFt: 18,
+        machineLengthFt: 24,
+        fieldAreaAcres: 25,
+        fieldShape: 'circle',
+        efficiencyPercent: 80,
+        selectedHours: 1
+    });
+
+    assert.equal(plan.fieldShape, 'circle');
+    assert.equal(plan.coverageSqFtPerHour, 0);
+    assert.equal(plan.coveredSqFt, 0);
+    assert.equal(plan.timeToCoverHours, Number.POSITIVE_INFINITY);
+    assert.equal(plan.completedPasses, 0);
+    assert.equal(plan.activePassNumber, null);
+    assert.ok(plan.totalPasses > 0);
+});
+
+test('field coverage plan tracks partial circle pass paint width', () => {
+    const plan = core.computeFieldCoveragePlan({
+        speedMph: 3,
+        machineWidthFt: 20,
+        machineLengthFt: 24,
+        fieldAreaAcres: 25,
+        fieldShape: 'circle',
+        efficiencyPercent: 80,
+        selectedHours: 0.25
+    });
+
+    assert.ok(plan.activePassNumber !== null);
+    const activePass = plan.passes[plan.activePassNumber - 1];
+    assert.ok(activePass.coverageFraction > 0 && activePass.coverageFraction < 1);
+    assert.ok(activePass.paintWidthFraction > 0 && activePass.paintWidthFraction < 1);
+});
+
 test('scanner range normalization respects band bounds', () => {
     const zones = core.normalizeScannerRanges(4, 16, 30, -2);
 

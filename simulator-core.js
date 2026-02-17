@@ -187,6 +187,232 @@
         };
     }
 
+    function sanitizeFieldShape(fieldShape) {
+        return fieldShape === 'circle' ? 'circle' : 'square';
+    }
+
+    function circleAreaPrimitive(radiusFt, xFt) {
+        if (radiusFt <= 0) {
+            return 0;
+        }
+
+        const safeX = clamp(xFt, -radiusFt, radiusFt);
+        const underRadical = Math.max(0, (radiusFt * radiusFt) - (safeX * safeX));
+        const ratio = clamp(safeX / radiusFt, -1, 1);
+        return (safeX * Math.sqrt(underRadical)) + ((radiusFt * radiusFt) * Math.asin(ratio));
+    }
+
+    function computeCircleStripAreaSqFt(radiusFt, xStartFt, xEndFt) {
+        if (radiusFt <= 0) {
+            return 0;
+        }
+
+        const start = clamp(Math.min(xStartFt, xEndFt), -radiusFt, radiusFt);
+        const end = clamp(Math.max(xStartFt, xEndFt), -radiusFt, radiusFt);
+
+        if (end <= start) {
+            return 0;
+        }
+
+        return Math.max(0, circleAreaPrimitive(radiusFt, end) - circleAreaPrimitive(radiusFt, start));
+    }
+
+    function computeCirclePaintWidthFraction(radiusFt, xStartFt, xEndFt, targetAreaSqFt) {
+        const start = Math.min(xStartFt, xEndFt);
+        const end = Math.max(xStartFt, xEndFt);
+        const fullAreaSqFt = computeCircleStripAreaSqFt(radiusFt, start, end);
+
+        if (fullAreaSqFt <= 0) {
+            return 0;
+        }
+
+        const target = clamp(toNumber(targetAreaSqFt, 0), 0, fullAreaSqFt);
+        if (target <= 0) {
+            return 0;
+        }
+        if (target >= fullAreaSqFt) {
+            return 1;
+        }
+
+        let low = start;
+        let high = end;
+
+        for (let iteration = 0; iteration < 28; iteration += 1) {
+            const midpoint = (low + high) / 2;
+            const area = computeCircleStripAreaSqFt(radiusFt, start, midpoint);
+
+            if (area < target) {
+                low = midpoint;
+            } else {
+                high = midpoint;
+            }
+        }
+
+        return clamp((high - start) / (end - start), 0, 1);
+    }
+
+    function buildCoveragePasses(fieldShape, fieldWidthFt, fieldHeightFt, machineWidthFt) {
+        const safeFieldShape = sanitizeFieldShape(fieldShape);
+        const safeFieldWidthFt = Math.max(0, toNumber(fieldWidthFt, 0));
+        const safeFieldHeightFt = Math.max(0, toNumber(fieldHeightFt, 0));
+        const safeMachineWidthFt = Math.max(0, toNumber(machineWidthFt, 0));
+
+        if (safeFieldWidthFt <= 0 || safeFieldHeightFt <= 0 || safeMachineWidthFt <= 0) {
+            return [];
+        }
+
+        const passCount = Math.ceil(safeFieldWidthFt / safeMachineWidthFt);
+        const passes = [];
+
+        if (safeFieldShape === 'square') {
+            for (let index = 0; index < passCount; index += 1) {
+                const xStartFt = index * safeMachineWidthFt;
+                const xEndFt = Math.min(safeFieldWidthFt, xStartFt + safeMachineWidthFt);
+                const widthFt = Math.max(0, xEndFt - xStartFt);
+
+                passes.push({
+                    index,
+                    xStartFt,
+                    xEndFt,
+                    widthFt,
+                    areaSqFt: widthFt * safeFieldHeightFt,
+                    coverageFraction: 0,
+                    paintWidthFraction: 0
+                });
+            }
+            return passes;
+        }
+
+        const radiusFt = safeFieldWidthFt / 2;
+        for (let index = 0; index < passCount; index += 1) {
+            const xStartCenteredFt = (-radiusFt) + (index * safeMachineWidthFt);
+            const xEndCenteredFt = Math.min(radiusFt, xStartCenteredFt + safeMachineWidthFt);
+            const widthFt = Math.max(0, xEndCenteredFt - xStartCenteredFt);
+
+            passes.push({
+                index,
+                xStartFt: xStartCenteredFt + radiusFt,
+                xEndFt: xEndCenteredFt + radiusFt,
+                widthFt,
+                areaSqFt: computeCircleStripAreaSqFt(radiusFt, xStartCenteredFt, xEndCenteredFt),
+                coverageFraction: 0,
+                paintWidthFraction: 0
+            });
+        }
+
+        return passes;
+    }
+
+    function computeFieldCoveragePlan(config) {
+        const safeShape = sanitizeFieldShape(config.fieldShape);
+        const safeSpeedMph = Math.max(0, toNumber(config.speedMph, 0));
+        const safeMachineWidthFt = Math.max(0, toNumber(config.machineWidthFt, 0));
+        const safeMachineLengthFt = Math.max(0, toNumber(config.machineLengthFt, 0));
+        const safeFieldAreaAcres = Math.max(0, toNumber(config.fieldAreaAcres, 0));
+        const safeEfficiencyPercent = clamp(toNumber(config.efficiencyPercent, 80), 0, 100);
+        const safeSelectedHours = Math.max(0, toNumber(config.selectedHours, 1));
+
+        const fieldAreaSqFt = safeFieldAreaAcres * SQFT_PER_ACRE;
+        const efficiencyRatio = safeEfficiencyPercent / 100;
+
+        const travelFeetPerHour = safeSpeedMph * FEET_PER_MILE;
+        const travelFeetPerSecond = travelFeetPerHour / SECONDS_PER_HOUR;
+
+        const rawCoverageSqFtPerHour = travelFeetPerHour * safeMachineWidthFt;
+        const effectiveCoverageSqFtPerHour = rawCoverageSqFtPerHour * efficiencyRatio;
+        const effectiveCoverageAcresPerHour = effectiveCoverageSqFtPerHour / SQFT_PER_ACRE;
+
+        const timeToCoverHours = effectiveCoverageSqFtPerHour > 0
+            ? fieldAreaSqFt / effectiveCoverageSqFtPerHour
+            : Number.POSITIVE_INFINITY;
+
+        const coveredSqFt = Math.min(fieldAreaSqFt, effectiveCoverageSqFtPerHour * safeSelectedHours);
+        const coveredAcres = coveredSqFt / SQFT_PER_ACRE;
+        const completionPercent = fieldAreaSqFt > 0
+            ? clamp((coveredSqFt / fieldAreaSqFt) * 100, 0, 100)
+            : 0;
+
+        const fieldWidthFt = safeShape === 'square'
+            ? Math.sqrt(fieldAreaSqFt)
+            : 2 * Math.sqrt(fieldAreaSqFt / Math.PI);
+        const fieldHeightFt = fieldWidthFt;
+
+        const basePasses = buildCoveragePasses(safeShape, fieldWidthFt, fieldHeightFt, safeMachineWidthFt);
+        let remainingSqFt = coveredSqFt;
+        let completedPasses = 0;
+        let activePassNumber = null;
+        let activePassCoveragePercent = 0;
+
+        const passes = basePasses.map((pass) => {
+            if (pass.areaSqFt <= 0 || remainingSqFt <= 0) {
+                return pass;
+            }
+
+            if (remainingSqFt >= pass.areaSqFt) {
+                remainingSqFt -= pass.areaSqFt;
+                completedPasses += 1;
+                return {
+                    ...pass,
+                    coverageFraction: 1,
+                    paintWidthFraction: 1
+                };
+            }
+
+            const fraction = clamp(remainingSqFt / pass.areaSqFt, 0, 1);
+            let paintWidthFraction = fraction;
+
+            if (safeShape === 'circle') {
+                const radiusFt = fieldWidthFt / 2;
+                const xStartCenteredFt = pass.xStartFt - radiusFt;
+                const xEndCenteredFt = pass.xEndFt - radiusFt;
+                paintWidthFraction = computeCirclePaintWidthFraction(
+                    radiusFt,
+                    xStartCenteredFt,
+                    xEndCenteredFt,
+                    remainingSqFt
+                );
+            }
+
+            remainingSqFt = 0;
+            activePassNumber = pass.index + 1;
+            activePassCoveragePercent = fraction * 100;
+
+            return {
+                ...pass,
+                coverageFraction: fraction,
+                paintWidthFraction
+            };
+        });
+
+        return {
+            fieldShape: safeShape,
+            fieldShapeLabel: safeShape === 'circle' ? 'Circle' : 'Square',
+            machineWidthFt: safeMachineWidthFt,
+            machineLengthFt: safeMachineLengthFt,
+            fieldAreaAcres: safeFieldAreaAcres,
+            fieldAreaSqFt,
+            fieldWidthFt,
+            fieldHeightFt,
+            efficiencyPercent: safeEfficiencyPercent,
+            efficiencyRatio,
+            speedMph: safeSpeedMph,
+            travelFeetPerSecond,
+            travelFeetPerHour,
+            coverageSqFtPerHour: effectiveCoverageSqFtPerHour,
+            coverageAcresPerHour: effectiveCoverageAcresPerHour,
+            timeToCoverHours,
+            selectedHours: safeSelectedHours,
+            coveredSqFt,
+            coveredAcres,
+            completionPercent,
+            passes,
+            totalPasses: passes.length,
+            completedPasses,
+            activePassNumber,
+            activePassCoveragePercent
+        };
+    }
+
     function getBandRange(bandWidthIn) {
         const safeBandWidthIn = clamp(toNumber(bandWidthIn, SCAN_WIDTH_IN), 0, SCAN_WIDTH_IN);
         const center = SCAN_WIDTH_IN / 2;
@@ -320,6 +546,7 @@
         computeAppliedSpeedMph,
         computeTargetFlowTargetsPerSecond,
         computeCoverageRates,
+        computeFieldCoveragePlan,
         getBandRange,
         normalizeScannerRanges,
         computeCoverageMetrics,

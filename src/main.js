@@ -24,10 +24,12 @@ function setMetricsTab(activeTab) {
 
     dom.metricsPanelSimulation.classList.toggle('hidden', showingCoverage);
     dom.metricsPanelCoverage.classList.toggle('hidden', !showingCoverage);
+    dom.simulationVisualView.classList.toggle('hidden', showingCoverage);
+    dom.coverageVisualView.classList.toggle('hidden', !showingCoverage);
 }
 
 function bindEvents() {
-    const controls = [
+    const simulationControls = [
         dom.densitySlider,
         dom.sizeSlider,
         dom.bandWidthSlider,
@@ -36,12 +38,33 @@ function bindEvents() {
         dom.overheadSlider
     ];
 
-    controls.forEach((control) => {
+    simulationControls.forEach((control) => {
         control.addEventListener('input', () => {
             engine.setRunning(false);
             engine.resetSimulationState();
             model.recomputeModel();
         });
+    });
+
+    const coverageControls = [
+        dom.machineWidthInput,
+        dom.machineLengthInput,
+        dom.fieldAreaInput,
+        dom.fieldShapeSelect,
+        dom.coverageEfficiencySlider,
+        dom.coverageHoursSlider
+    ];
+
+    coverageControls.forEach((control) => {
+        const updateCoverage = () => {
+            model.recomputeModel();
+        };
+
+        if (control.tagName === 'SELECT') {
+            control.addEventListener('change', updateCoverage);
+        } else {
+            control.addEventListener('input', updateCoverage);
+        }
     });
 
     dom.runButton.addEventListener('click', () => {

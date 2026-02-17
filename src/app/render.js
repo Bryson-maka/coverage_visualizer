@@ -1,5 +1,7 @@
 export function createRenderer({ dom, state, core, config }) {
     const pxPerIn = config.SCAN_DRAW_SIZE_PX / core.SCAN_WIDTH_IN;
+    const coverageDrawPx = config.COVERAGE_DRAW_SIZE_PX;
+    const coveragePadPx = config.SCAN_PADDING_PX;
 
     function inToPx(inches) {
         return config.SCAN_PADDING_PX + inches * pxPerIn;
@@ -116,11 +118,141 @@ export function createRenderer({ dom, state, core, config }) {
         dom.weedLayer.appendChild(fragment);
     }
 
+    function renderCoverageField() {
+        dom.coverageFieldLayer.innerHTML = '';
+
+        const plan = state.coverage;
+        if (!plan || plan.fieldAreaSqFt <= 0 || plan.fieldWidthFt <= 0 || plan.fieldHeightFt <= 0) {
+            return;
+        }
+
+        const fieldWidthFt = plan.fieldWidthFt;
+        const fieldHeightFt = plan.fieldHeightFt;
+
+        const toPxX = (xFt) => coveragePadPx + (xFt / fieldWidthFt) * coverageDrawPx;
+        const toPxY = (yFt) => coveragePadPx + (yFt / fieldHeightFt) * coverageDrawPx;
+
+        const drawGroup = createSvgElement('g');
+
+        const fillGroup = createSvgElement('g');
+        let overlayBoundary;
+
+        if (plan.fieldShape === 'circle') {
+            const defs = createSvgElement('defs');
+            const clipPath = createSvgElement('clipPath');
+            clipPath.setAttribute('id', 'coverage-field-clip');
+
+            const circle = createSvgElement('circle');
+            circle.setAttribute('cx', String(coveragePadPx + (coverageDrawPx / 2)));
+            circle.setAttribute('cy', String(coveragePadPx + (coverageDrawPx / 2)));
+            circle.setAttribute('r', String(coverageDrawPx / 2));
+            clipPath.appendChild(circle);
+
+            defs.appendChild(clipPath);
+            drawGroup.appendChild(defs);
+            fillGroup.setAttribute('clip-path', 'url(#coverage-field-clip)');
+
+            overlayBoundary = createSvgElement('circle');
+            overlayBoundary.setAttribute('cx', String(coveragePadPx + (coverageDrawPx / 2)));
+            overlayBoundary.setAttribute('cy', String(coveragePadPx + (coverageDrawPx / 2)));
+            overlayBoundary.setAttribute('r', String(coverageDrawPx / 2));
+            overlayBoundary.setAttribute('class', 'coverage-field-boundary');
+        } else {
+            overlayBoundary = createSvgElement('rect');
+            overlayBoundary.setAttribute('x', String(coveragePadPx));
+            overlayBoundary.setAttribute('y', String(coveragePadPx));
+            overlayBoundary.setAttribute('width', String(coverageDrawPx));
+            overlayBoundary.setAttribute('height', String(coverageDrawPx));
+            overlayBoundary.setAttribute('class', 'coverage-field-boundary');
+        }
+
+        const base = createSvgElement('rect');
+        base.setAttribute('x', String(coveragePadPx));
+        base.setAttribute('y', String(coveragePadPx));
+        base.setAttribute('width', String(coverageDrawPx));
+        base.setAttribute('height', String(coverageDrawPx));
+        base.setAttribute('class', 'coverage-field-uncovered');
+        fillGroup.appendChild(base);
+
+        for (const pass of plan.passes) {
+            const xStartPx = toPxX(pass.xStartFt);
+            const passWidthPx = Math.max(0, toPxX(pass.xEndFt) - xStartPx);
+
+            const separator = createSvgElement('line');
+            separator.setAttribute('x1', String(xStartPx));
+            separator.setAttribute('x2', String(xStartPx));
+            separator.setAttribute('y1', String(coveragePadPx));
+            separator.setAttribute('y2', String(coveragePadPx + coverageDrawPx));
+            separator.setAttribute('class', 'coverage-pass-separator');
+            fillGroup.appendChild(separator);
+
+            if (pass.coverageFraction <= 0 || passWidthPx <= 0) {
+                continue;
+            }
+
+            const filled = createSvgElement('rect');
+            filled.setAttribute('x', String(xStartPx));
+            filled.setAttribute('y', String(coveragePadPx));
+            filled.setAttribute('width', String(passWidthPx * (pass.paintWidthFraction ?? pass.coverageFraction)));
+            filled.setAttribute('height', String(coverageDrawPx));
+            filled.setAttribute('class', 'coverage-field-covered');
+            fillGroup.appendChild(filled);
+        }
+
+        const finalSeparator = createSvgElement('line');
+        finalSeparator.setAttribute('x1', String(coveragePadPx + coverageDrawPx));
+        finalSeparator.setAttribute('x2', String(coveragePadPx + coverageDrawPx));
+        finalSeparator.setAttribute('y1', String(coveragePadPx));
+        finalSeparator.setAttribute('y2', String(coveragePadPx + coverageDrawPx));
+        finalSeparator.setAttribute('class', 'coverage-pass-separator');
+        fillGroup.appendChild(finalSeparator);
+
+        if (plan.activePassNumber) {
+            const activePass = plan.passes[plan.activePassNumber - 1];
+            if (activePass) {
+                const activeBox = createSvgElement('rect');
+                activeBox.setAttribute('x', String(toPxX(activePass.xStartFt)));
+                activeBox.setAttribute('y', String(coveragePadPx));
+                activeBox.setAttribute('width', String(toPxX(activePass.xEndFt) - toPxX(activePass.xStartFt)));
+                activeBox.setAttribute('height', String(coverageDrawPx));
+                activeBox.setAttribute('class', 'coverage-active-pass-box');
+                fillGroup.appendChild(activeBox);
+            }
+        }
+
+        if (plan.passes.length > 0) {
+            let markerXFt = 0;
+            let markerYFt = 0;
+
+            if (plan.activePassNumber) {
+                const activePass = plan.passes[plan.activePassNumber - 1];
+                markerXFt = activePass.xStartFt + (activePass.widthFt * activePass.coverageFraction);
+                markerYFt = activePass.index % 2 === 0 ? fieldHeightFt : 0;
+            } else if (plan.completionPercent >= 100) {
+                const lastPass = plan.passes[plan.passes.length - 1];
+                markerXFt = lastPass.xEndFt;
+                markerYFt = lastPass.index % 2 === 0 ? fieldHeightFt : 0;
+            }
+
+            const marker = createSvgElement('circle');
+            marker.setAttribute('cx', String(toPxX(markerXFt)));
+            marker.setAttribute('cy', String(toPxY(markerYFt)));
+            marker.setAttribute('r', '4.5');
+            marker.setAttribute('class', 'coverage-tractor-marker');
+            fillGroup.appendChild(marker);
+        }
+
+        drawGroup.appendChild(fillGroup);
+        drawGroup.appendChild(overlayBoundary);
+        dom.coverageFieldLayer.appendChild(drawGroup);
+    }
+
     return {
         inToPx,
         pxPerIn,
         renderGrid,
         renderStaticLayers,
-        renderWeeds
+        renderWeeds,
+        renderCoverageField
     };
 }

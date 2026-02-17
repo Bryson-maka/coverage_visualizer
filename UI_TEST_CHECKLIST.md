@@ -60,11 +60,13 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 
 ## Coverage Data Tab
 
-- [ ] `Machine Size` shows `20.0 x 20.0` in.
-- [ ] `Applied Travel Speed` increases when applied mph increases.
-- [ ] `Machine Coverage Rate` and `Active Band Coverage` rise with speed.
-- [ ] `Machine Coverage Rate` is greater than `Active Band Coverage` when band width < 20 in.
-- [ ] Time-per-acre fields show `N/A` when applied speed is zero.
+- [ ] Coverage tab displays machine width/length, field size, field shape, efficiency, and selected paint time controls.
+- [ ] Default efficiency is `80%` and changing it updates coverage KPIs.
+- [ ] Coverage rate (`sq ft/hr`, `acres/hr`) rises when applied speed or machine width increases.
+- [ ] Time-to-full-coverage shows `N/A` when applied speed is zero.
+- [ ] Switching field shape between square/circle updates the field boundary drawing.
+- [ ] Selected paint time updates both completion KPI and pass-painted field map.
+- [ ] Pass progress readout (`completed / total`, active pass) matches field painting state.
 
 ## Density Conversion Sanity
 
