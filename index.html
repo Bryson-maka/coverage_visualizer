@@ -239,56 +239,17 @@
                         <summary>Performance Snapshot</summary>
                         <div class="panel-dropdown-content metrics-list">
                             <p>Density: <strong id="density-readout">0.00</strong> weeds/sq ft</p>
-                            <p>Banded Weeds per sq ft (12" ref): <strong id="banded-weeds-readout">0.00</strong></p>
                             <p>Banded Share of weeds/sq ft: <strong id="banded-share-readout">0.00</strong>%</p>
                             <div class="band-share-visual">
                                 <span class="band-share-label">Banded Share</span>
                                 <div class="band-share-track"><div id="banded-share-fill" class="band-share-fill"></div></div>
                             </div>
-                            <p>Expected Weeds in 20" x 20": <strong id="window-weeds-readout">0.00</strong></p>
                             <p>Band Width: <strong id="band-width-readout">0.00</strong> in</p>
                             <p>Coverage Completeness: <strong id="coverage-readout">100.00</strong>%</p>
                             <p>Coverage Gap: <strong id="coverage-gap-readout">0.00</strong> in</p>
                             <p id="coverage-warning" class="warning hidden">Coverage gap detected. Targets in the gap cannot be shot.</p>
-                            <p>Target Inflow @ Applied Speed: <strong id="inflow-readout">0.00</strong> /sec</p>
-                            <p>Scanner Capacity: <strong id="capacity-readout">0.00</strong> /sec</p>
                             <p>Hit Rate: <strong id="hit-rate-readout">0.00</strong>%</p>
                             <p>Elapsed Runtime: <strong id="elapsed-readout">0.0 s (0.00 min)</strong></p>
-                        </div>
-                    </details>
-
-                    <details class="panel-dropdown" open>
-                        <summary>Target Queue + Scanner Load</summary>
-                        <div class="panel-dropdown-content metrics-list">
-                            <p>Active Targets: <strong id="active-targets-readout">0</strong></p>
-                            <p>Queue Depth: <strong id="queue-depth-readout">0</strong></p>
-                            <p>Shots Fired: <strong id="shots-readout">0</strong></p>
-                            <p>Shots per Second: <strong id="shots-per-second-readout">0.00</strong></p>
-                            <p>Shots per Minute: <strong id="shots-per-minute-readout">0.00</strong></p>
-                            <p>Missed Targets: <strong id="missed-readout">0</strong></p>
-                            <p>Shot-Line Center (Avg Y): <strong id="shot-line-readout">0.00</strong> in</p>
-                            <p>Avg Exit Margin at Shot: <strong id="shot-margin-readout">0.00</strong> s</p>
-                            <p>Queue Growth Rate: <strong id="queue-growth-readout">0.00</strong> /sec</p>
-                            <p>Scanner A Utilization: <strong id="scanner-a-util-readout">0.00</strong>%</p>
-                            <p>Scanner B Utilization: <strong id="scanner-b-util-readout">0.00</strong>%</p>
-                        </div>
-                    </details>
-
-                    <details class="panel-dropdown">
-                        <summary>Model Details (Raw Values)</summary>
-                        <div class="panel-dropdown-content metrics-list">
-                            <p>Raw Modeled Speed: <strong id="raw-speed-readout">0.00</strong> mph</p>
-                            <p>Headroom-Adjusted Raw Speed: <strong id="utilized-speed-readout">0.00</strong> mph</p>
-                            <p>Applied Speed: <strong id="applied-speed-readout">0.00</strong> mph</p>
-                            <p>Speed Utilization Target: <strong id="utilization-target-readout">0</strong>%</p>
-                            <p>Shoot Time: <strong id="shoot-time-readout">0.00</strong> ms</p>
-                            <p>Overhead Time: <strong id="overhead-readout">0.00</strong> ms</p>
-                            <p>Time Per Target: <strong id="time-per-target-readout">0.00</strong> ms</p>
-                            <p>Targeting Policy: <strong id="targeting-policy-readout">midline</strong></p>
-                            <p>Target Midline: <strong id="target-midline-readout">0.0</strong> in</p>
-                            <p>Urgent Threshold: <strong id="target-urgent-readout">0.0</strong> in</p>
-                            <p>Scanner A Range: <strong id="scanner-a-range-readout">0.0 - 0.0</strong> in</p>
-                            <p>Scanner B Range: <strong id="scanner-b-range-readout">0.0 - 0.0</strong> in</p>
                         </div>
                     </details>
                 </section>
@@ -358,7 +319,7 @@
                         </div>
                     </details>
 
-                    <details class="panel-dropdown" open>
+                    <details class="panel-dropdown">
                         <summary>Coverage KPI Summary</summary>
                         <div class="panel-dropdown-content">
                             <div class="coverage-kpi-grid">
@@ -378,6 +339,48 @@
                     </details>
 
                     <p class="control-note">Coverage KPI is based on simulation speed and your planner inputs.</p>
+                </section>
+
+                <section id="metrics-panel-simulation-secondary" class="metrics-tab-panel">
+                    <details class="panel-dropdown">
+                        <summary>Target Queue + Scanner Load</summary>
+                        <div class="panel-dropdown-content metrics-list">
+                            <p>Active Targets: <strong id="active-targets-readout">0</strong></p>
+                            <p>Queue Depth: <strong id="queue-depth-readout">0</strong></p>
+                            <p>Shots Fired: <strong id="shots-readout">0</strong></p>
+                            <p>Shots per Second: <strong id="shots-per-second-readout">0.00</strong></p>
+                            <p>Shots per Minute: <strong id="shots-per-minute-readout">0.00</strong></p>
+                            <p>Shots per Hour: <strong id="shots-per-hour-readout">0.00</strong></p>
+                            <p>Missed Targets: <strong id="missed-readout">0</strong></p>
+                            <p>Shot-Line Center (Avg Y): <strong id="shot-line-readout">0.00</strong> in</p>
+                            <p>Avg Exit Margin at Shot: <strong id="shot-margin-readout">0.00</strong> s</p>
+                            <p>Queue Growth Rate: <strong id="queue-growth-readout">0.00</strong> /sec</p>
+                            <p>Scanner A Utilization: <strong id="scanner-a-util-readout">0.00</strong>%</p>
+                            <p>Scanner B Utilization: <strong id="scanner-b-util-readout">0.00</strong>%</p>
+                            <p>Scanner A Duty Cycle: <strong id="scanner-a-duty-readout">0.00</strong>%</p>
+                            <p>Scanner B Duty Cycle: <strong id="scanner-b-duty-readout">0.00</strong>%</p>
+                            <p>Target Inflow @ Applied Speed: <strong id="inflow-readout">0.00</strong> /sec</p>
+                            <p>Scanner Capacity: <strong id="capacity-readout">0.00</strong> /sec</p>
+                        </div>
+                    </details>
+
+                    <details class="panel-dropdown">
+                        <summary>Model Details (Raw Values)</summary>
+                        <div class="panel-dropdown-content metrics-list">
+                            <p>Raw Modeled Speed: <strong id="raw-speed-readout">0.00</strong> mph</p>
+                            <p>Headroom-Adjusted Raw Speed: <strong id="utilized-speed-readout">0.00</strong> mph</p>
+                            <p>Applied Speed: <strong id="applied-speed-readout">0.00</strong> mph</p>
+                            <p>Speed Utilization Target: <strong id="utilization-target-readout">0</strong>%</p>
+                            <p>Shoot Time: <strong id="shoot-time-readout">0.00</strong> ms</p>
+                            <p>Overhead Time: <strong id="overhead-readout">0.00</strong> ms</p>
+                            <p>Time Per Target: <strong id="time-per-target-readout">0.00</strong> ms</p>
+                            <p>Targeting Policy: <strong id="targeting-policy-readout">midline</strong></p>
+                            <p>Target Midline: <strong id="target-midline-readout">0.0</strong> in</p>
+                            <p>Urgent Threshold: <strong id="target-urgent-readout">0.0</strong> in</p>
+                            <p>Scanner A Range: <strong id="scanner-a-range-readout">0.0 - 0.0</strong> in</p>
+                            <p>Scanner B Range: <strong id="scanner-b-range-readout">0.0 - 0.0</strong> in</p>
+                        </div>
+                    </details>
                 </section>
             </aside>
         </section>

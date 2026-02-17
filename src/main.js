@@ -25,6 +25,7 @@ function setMetricsTab(activeTab) {
     dom.metricsTabCoverage.setAttribute('aria-selected', String(showingCoverage));
 
     dom.metricsPanelSimulation.classList.toggle('hidden', showingCoverage);
+    dom.metricsPanelSimulationSecondary.classList.toggle('hidden', showingCoverage);
     dom.metricsPanelCoverage.classList.toggle('hidden', !showingCoverage);
     dom.simulationVisualView.classList.toggle('hidden', showingCoverage);
     dom.coverageVisualView.classList.toggle('hidden', !showingCoverage);

@@ -20,7 +20,6 @@ export function createMetricsPresenter({ dom, state, core }) {
         const totalResolved = state.stats.shots + state.stats.missed;
         const hitRate = totalResolved > 0 ? (state.stats.shots / totalResolved) * 100 : 0;
         const density = Number(dom.densitySlider.value);
-        const windowWeeds = core.weedsInWindow(density);
         const shotLineLabel = state.stats.shotSamples > 0
             ? format(state.stats.shotLineYMeanIn, 2)
             : 'N/A';
@@ -32,17 +31,12 @@ export function createMetricsPresenter({ dom, state, core }) {
         dom.speedCapNote.classList.toggle('hidden', !state.model.isCapped);
 
         dom.densityReadout.textContent = format(density, 2);
-        dom.bandedWeedsReadout.textContent = format(state.model.bandedWeedsPerSqFt, 2);
         dom.bandedShareReadout.textContent = format(state.model.bandedSharePercent, 2);
         dom.bandedShareFill.style.width = `${format(state.model.bandedSharePercent, 2)}%`;
-        dom.windowWeedsReadout.textContent = format(windowWeeds, 2);
         dom.bandWidthReadout.textContent = format(state.band.width, 2);
         dom.coverageReadout.textContent = format(state.model.coverageRatio * 100, 2);
         dom.coverageGapReadout.textContent = format(state.model.coverageGapIn, 2);
         dom.coverageWarning.classList.toggle('hidden', !state.model.hasCoverageGap);
-
-        dom.inflowReadout.textContent = format(state.model.inflowTargetsPerSecond, 2);
-        dom.capacityReadout.textContent = format(state.model.capacityTargetsPerSecond, 2);
         dom.activeTargetsReadout.textContent = String(activeTargets);
         dom.queueDepthReadout.textContent = String(queueDepth);
         dom.shotsReadout.textContent = String(state.stats.shots);
@@ -56,6 +50,7 @@ export function createMetricsPresenter({ dom, state, core }) {
         const elapsedMinutes = elapsedSeconds / 60;
         const shotsPerSecond = elapsedSeconds > 0 ? state.stats.shots / elapsedSeconds : 0;
         const shotsPerMinute = shotsPerSecond * 60;
+        const shotsPerHour = shotsPerMinute * 60;
         const scannerMaxShotsPerSecond = state.model.timePerTargetMs > 0
             ? 1000 / state.model.timePerTargetMs
             : 0;
@@ -71,12 +66,25 @@ export function createMetricsPresenter({ dom, state, core }) {
         const scannerBUtilizationPercent = scannerMaxShotsPerSecond > 0
             ? (scannerBShotsPerSecond / scannerMaxShotsPerSecond) * 100
             : 0;
+        const scannerADutyCyclePercent = Math.min(
+            100,
+            scannerAShotsPerSecond * (state.model.shootTimeMs / 1000) * 100
+        );
+        const scannerBDutyCyclePercent = Math.min(
+            100,
+            scannerBShotsPerSecond * (state.model.shootTimeMs / 1000) * 100
+        );
 
         dom.elapsedReadout.textContent = `${format(elapsedSeconds, 1)} s (${format(elapsedMinutes, 2)} min)`;
         dom.shotsPerSecondReadout.textContent = format(shotsPerSecond, 2);
         dom.shotsPerMinuteReadout.textContent = format(shotsPerMinute, 2);
+        dom.shotsPerHourReadout.textContent = format(shotsPerHour, 2);
         dom.scannerAUtilReadout.textContent = format(scannerAUtilizationPercent, 2);
         dom.scannerBUtilReadout.textContent = format(scannerBUtilizationPercent, 2);
+        dom.scannerADutyReadout.textContent = format(scannerADutyCyclePercent, 2);
+        dom.scannerBDutyReadout.textContent = format(scannerBDutyCyclePercent, 2);
+        dom.inflowReadout.textContent = format(state.model.inflowTargetsPerSecond, 2);
+        dom.capacityReadout.textContent = format(state.model.capacityTargetsPerSecond, 2);
 
         dom.rawSpeedReadout.textContent = format(state.model.rawSpeedMph, 2);
         dom.utilizedSpeedReadout.textContent = format(state.model.utilizedRawSpeedMph, 2);
