@@ -1,6 +1,72 @@
 export function createSimulationEngine({ core, dom, state, renderer, metrics, config }) {
+    function isInTargetBand(weed) {
+        return weed.xIn >= state.band.start && weed.xIn <= state.band.end;
+    }
+
+    function isInScannerCoverageX(xIn) {
+        const inScannerA = xIn >= state.zones.scannerA.start && xIn <= state.zones.scannerA.end;
+        const inScannerB = xIn >= state.zones.scannerB.start && xIn <= state.zones.scannerB.end;
+        return inScannerA || inScannerB;
+    }
+
+    function createWeed(xIn, yIn) {
+        return {
+            id: state.nextWeedId,
+            xIn,
+            yIn,
+            size: Number(dom.sizeSlider.value),
+            type: Math.random() < 0.5 ? 'broadleaf' : 'grass',
+            rotationDeg: Math.random() * 360,
+            shot: false,
+            shotAgeMs: 0
+        };
+    }
+
+    function addWeedToState(xIn, yIn, options = {}) {
+        const weed = createWeed(xIn, yIn);
+        if (options.shot === true) {
+            weed.shot = true;
+            weed.shotAgeMs = Number.POSITIVE_INFINITY;
+        }
+
+        state.weeds.push(weed);
+        state.nextWeedId += 1;
+        state.stats.spawned += 1;
+    }
+
+    function seedWindowPopulation() {
+        const density = Math.max(0, Number(dom.densitySlider.value));
+        const expectedWindowCount = density * core.WINDOW_AREA_SQFT;
+        const wholeCount = Math.floor(expectedWindowCount);
+        const fractional = expectedWindowCount - wholeCount;
+        const seedCount = wholeCount + (Math.random() < fractional ? 1 : 0);
+
+        const shootLineYIn = core.clamp(
+            Number(dom.targetMidlineSlider.value),
+            0,
+            core.SCAN_HEIGHT_IN
+        );
+
+        for (let i = 0; i < seedCount; i += 1) {
+            const yIn = Math.random() * core.SCAN_HEIGHT_IN;
+            const xIn = Math.random() * core.SCAN_WIDTH_IN;
+            const shouldSeedAsShot = yIn > shootLineYIn && isInScannerCoverageX(xIn);
+
+            addWeedToState(
+                xIn,
+                yIn,
+                { shot: shouldSeedAsShot }
+            );
+        }
+    }
+
     function countActiveTargets() {
-        return state.weeds.filter((weed) => !weed.shot && weed.yIn >= 0 && weed.yIn <= core.SCAN_HEIGHT_IN).length;
+        return state.weeds.filter(
+            (weed) => !weed.shot &&
+                weed.yIn >= 0 &&
+                weed.yIn <= core.SCAN_HEIGHT_IN &&
+                isInTargetBand(weed)
+        ).length;
     }
 
     function trackShotObservability(targetYIn) {
@@ -53,6 +119,9 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
             scanner.shots = 0;
         });
 
+        seedWindowPopulation();
+        state.stats.lastActiveTargets = countActiveTargets();
+
         renderer.renderWeeds();
         metrics.updateMetrics();
     }
@@ -63,7 +132,7 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
         }
 
         const density = Number(dom.densitySlider.value);
-        const enteringAreaSqFt = (state.band.width * distanceIn) / 144;
+        const enteringAreaSqFt = (core.SCAN_WIDTH_IN * distanceIn) / 144;
         const expectedCount = density * enteringAreaSqFt;
 
         state.spawnCarry += expectedCount;
@@ -72,27 +141,10 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
         state.spawnCarry -= spawnCount;
 
         for (let i = 0; i < spawnCount; i += 1) {
-            const useMidlineSpawnBand = state.model.targetingPolicy === 'midline';
-            const midlineYIn = core.clamp(state.model.targetMidlineYIn, 0, core.SCAN_HEIGHT_IN);
-            const spawnCeilingIn = Math.max(0.5, midlineYIn);
-            const spawnTopJitterIn = 0.2;
-            const spawnedYIn = useMidlineSpawnBand
-                ? (Math.sqrt(Math.random()) * spawnCeilingIn) - (Math.random() * spawnTopJitterIn)
-                : -Math.random() * 0.4;
-
-            state.weeds.push({
-                id: state.nextWeedId,
-                xIn: state.band.start + Math.random() * state.band.width,
-                yIn: spawnedYIn,
-                size: Number(dom.sizeSlider.value),
-                type: Math.random() < 0.5 ? 'broadleaf' : 'grass',
-                rotationDeg: Math.random() * 360,
-                shot: false,
-                shotAgeMs: 0
-            });
-
-            state.nextWeedId += 1;
-            state.stats.spawned += 1;
+            addWeedToState(
+                Math.random() * core.SCAN_WIDTH_IN,
+                -Math.random() * 0.5
+            );
         }
     }
 
@@ -162,13 +214,9 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
 
         for (const weed of state.weeds) {
             if (weed.yIn > core.SCAN_HEIGHT_IN) {
-                if (!weed.shot) {
+                if (!weed.shot && isInTargetBand(weed)) {
                     state.stats.missed += 1;
                 }
-                continue;
-            }
-
-            if (weed.shot && weed.shotAgeMs >= config.SHOT_FADE_MS) {
                 continue;
             }
 

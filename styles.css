@@ -29,13 +29,24 @@ body {
     padding: 1.5rem;
 }
 
+.app-header {
+    margin-bottom: 0.9rem;
+}
+
+.app-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+}
+
 .app-header h1 {
     margin: 0;
     font-size: 1.8rem;
 }
 
 .app-header p {
-    margin: 0.35rem 0 1.1rem;
+    margin: 0.35rem 0 0;
     color: var(--muted);
 }
 
@@ -56,7 +67,7 @@ body {
 .controls-panel {
     display: flex;
     flex-direction: column;
-    gap: 0.85rem;
+    gap: 0.7rem;
 }
 
 .controls-panel h2,
@@ -122,6 +133,14 @@ select {
     display: flex;
     gap: 0.5rem;
     margin-top: 0.35rem;
+}
+
+.header-actions {
+    margin-top: 0;
+}
+
+.header-actions .btn {
+    min-width: 72px;
 }
 
 .control-note {
@@ -192,6 +211,53 @@ select {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+}
+
+.panel-dropdown {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fbfcfd;
+    margin: 0;
+}
+
+.panel-dropdown summary {
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #1f3a45;
+    padding: 0.62rem 0.7rem;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.panel-dropdown summary::-webkit-details-marker {
+    display: none;
+}
+
+.panel-dropdown summary::after {
+    content: '\25BE';
+    color: #5a7180;
+    font-size: 0.8rem;
+    transform: rotate(-90deg);
+    transition: transform 140ms ease;
+}
+
+.panel-dropdown[open] summary::after {
+    transform: rotate(0deg);
+}
+
+.panel-dropdown-content {
+    border-top: 1px solid var(--line);
+    padding: 0.65rem 0.7rem 0.72rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.metrics-list {
+    gap: 0.45rem;
 }
 
 .visual-view {
@@ -348,9 +414,14 @@ select {
     color: #2f7a3a;
 }
 
-.weed-shot {
-    color: #ef4444;
-    opacity: 0.9;
+.weed-shooting {
+    color: #facc15;
+    opacity: 1;
+}
+
+.weed-dead {
+    color: #b91c1c;
+    opacity: 0.95;
 }
 
 .legend {
@@ -398,7 +469,11 @@ select {
 }
 
 .legend-dot.shot {
-    background: #ef4444;
+    background: #facc15;
+}
+
+.legend-dot.dead {
+    background: #b91c1c;
 }
 
 .legend-box.coverage-field {
@@ -530,17 +605,6 @@ select {
     font-weight: 600;
 }
 
-details {
-    margin-top: 0.35rem;
-    border-top: 1px solid var(--line);
-    padding-top: 0.45rem;
-}
-
-summary {
-    cursor: pointer;
-    font-weight: 600;
-}
-
 @media (max-width: 1200px) {
     .app-grid {
         grid-template-columns: 1fr;
@@ -558,5 +622,18 @@ summary {
     .coverage-settings-grid,
     .coverage-visual-cards {
         grid-template-columns: 1fr;
+    }
+
+    .app-header-top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-actions {
+        width: 100%;
+    }
+
+    .header-actions .btn {
+        flex: 1;
     }
 }

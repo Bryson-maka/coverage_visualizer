@@ -10,7 +10,14 @@
 <body>
     <main class="app-shell">
         <header class="app-header">
-            <h1>Laserweeder Module Simulator</h1>
+            <div class="app-header-top">
+                <h1>Laserweeder Module Simulator</h1>
+                <div class="button-row header-actions">
+                    <button id="run-button" class="btn btn-primary" type="button">Run</button>
+                    <button id="pause-button" class="btn" type="button">Pause</button>
+                    <button id="reset-button" class="btn" type="button">Reset</button>
+                </div>
+            </div>
             <p>20" x 20" scan-window simulation for throughput, speed, and target execution.</p>
         </header>
 
@@ -21,110 +28,120 @@
                     <button id="reset-defaults-button" class="set-default-btn set-default-reset" type="button">Reset Saved Defaults</button>
                 </div>
 
-                <label class="control" for="density-slider">
-                    <span class="control-header">
-                        <span>Weed Density (<span id="density-value">1</span> weeds/sq ft)</span>
-                        <button type="button" class="set-default-btn" data-default-key="densityPerSqFt">Set Default</button>
-                    </span>
-                    <input type="range" id="density-slider" min="1" max="250" step="1" value="60">
-                    <small>Expected in 20" x 20": <strong id="window-density">0.00</strong> weeds</small>
-                </label>
+                <details class="panel-dropdown" open>
+                    <summary>Weed Profile + Throughput</summary>
+                    <div class="panel-dropdown-content">
+                        <label class="control" for="density-slider">
+                            <span class="control-header">
+                                <span>Weed Density (<span id="density-value">1</span> weeds/sq ft)</span>
+                                <button type="button" class="set-default-btn" data-default-key="densityPerSqFt">Set Default</button>
+                            </span>
+                            <input type="range" id="density-slider" min="1" max="250" step="1" value="60">
+                            <small>Expected in 20" x 20": <strong id="window-density">0.00</strong> weeds</small>
+                        </label>
 
-                <label class="control" for="size-slider">
-                    <span class="control-header">
-                        <span>Average Weed Size (<span id="size-value">10</span>)</span>
-                        <button type="button" class="set-default-btn" data-default-key="weedSize">Set Default</button>
-                    </span>
-                    <input type="range" id="size-slider" min="1" max="20" step="1" value="10">
-                    <small>Dose and shoot time come from a nonlinear size profile.</small>
-                </label>
+                        <label class="control" for="size-slider">
+                            <span class="control-header">
+                                <span>Average Weed Size (<span id="size-value">10</span>)</span>
+                                <button type="button" class="set-default-btn" data-default-key="weedSize">Set Default</button>
+                            </span>
+                            <input type="range" id="size-slider" min="1" max="20" step="1" value="10">
+                            <small>Dose and shoot time come from a nonlinear size profile.</small>
+                        </label>
 
-                <div class="control readout-control">
-                    <span>Shoot Time From Weed Size</span>
-                    <p class="control-value"><strong id="shoot-time-value">0.00</strong> ms</p>
-                    <small>Profile anchors: size 1=25ms, size 2=30ms, size 3=40ms, size 20=250ms.</small>
-                </div>
+                        <div class="control readout-control">
+                            <span>Shoot Time From Weed Size</span>
+                            <p class="control-value"><strong id="shoot-time-value">0.00</strong> ms</p>
+                            <small>Profile anchors: size 1=25ms, size 2=30ms, size 3=40ms, size 20=250ms.</small>
+                        </div>
+                    </div>
+                </details>
 
-                <label class="control" for="band-width-slider">
-                    <span class="control-header">
-                        <span>Band Width (<span id="band-width-value">6.0</span> in)</span>
-                        <button type="button" class="set-default-btn" data-default-key="bandWidthIn">Set Default</button>
-                    </span>
-                    <input type="range" id="band-width-slider" min="1" max="20" step="0.1" value="6">
-                    <small>Centered inside the 20" scan width.</small>
-                </label>
+                <details class="panel-dropdown" open>
+                    <summary>Scanner + Speed Controls</summary>
+                    <div class="panel-dropdown-content">
+                        <label class="control" for="band-width-slider">
+                            <span class="control-header">
+                                <span>Band Width (<span id="band-width-value">6.0</span> in)</span>
+                                <button type="button" class="set-default-btn" data-default-key="bandWidthIn">Set Default</button>
+                            </span>
+                            <input type="range" id="band-width-slider" min="1" max="20" step="0.1" value="6">
+                            <small>Centered inside the 20" scan width.</small>
+                        </label>
 
-                <label class="control" for="scanner-a-end-slider">
-                    <span class="control-header">
-                        <span>Scanner A Right Bar (<span id="scanner-a-end-value">11.0</span> in)</span>
-                        <button type="button" class="set-default-btn" data-default-key="scannerARightIn">Set Default</button>
-                    </span>
-                    <input type="range" id="scanner-a-end-slider" min="0" max="20" step="0.1" value="11">
-                    <small>Defines right edge of Scanner A coverage.</small>
-                </label>
+                        <label class="control" for="scanner-a-end-slider">
+                            <span class="control-header">
+                                <span>Scanner A Right Bar (<span id="scanner-a-end-value">11.0</span> in)</span>
+                                <button type="button" class="set-default-btn" data-default-key="scannerARightIn">Set Default</button>
+                            </span>
+                            <input type="range" id="scanner-a-end-slider" min="0" max="20" step="0.1" value="11">
+                            <small>Defines right edge of Scanner A coverage.</small>
+                        </label>
 
-                <label class="control" for="scanner-b-start-slider">
-                    <span class="control-header">
-                        <span>Scanner B Left Bar (<span id="scanner-b-start-value">9.0</span> in)</span>
-                        <button type="button" class="set-default-btn" data-default-key="scannerBLeftIn">Set Default</button>
-                    </span>
-                    <input type="range" id="scanner-b-start-slider" min="0" max="20" step="0.1" value="9">
-                    <small>Defines left edge of Scanner B coverage.</small>
-                </label>
+                        <label class="control" for="scanner-b-start-slider">
+                            <span class="control-header">
+                                <span>Scanner B Left Bar (<span id="scanner-b-start-value">9.0</span> in)</span>
+                                <button type="button" class="set-default-btn" data-default-key="scannerBLeftIn">Set Default</button>
+                            </span>
+                            <input type="range" id="scanner-b-start-slider" min="0" max="20" step="0.1" value="9">
+                            <small>Defines left edge of Scanner B coverage.</small>
+                        </label>
 
-                <label class="control" for="overhead-slider">
-                    <span class="control-header">
-                        <span>Scanner Overhead (<span id="overhead-value">60</span> ms)</span>
-                        <button type="button" class="set-default-btn" data-default-key="overheadMs">Set Default</button>
-                    </span>
-                    <input type="range" id="overhead-slider" min="0" max="300" step="1" value="60">
-                    <small>Average target-to-target travel + control overhead per shot.</small>
-                </label>
+                        <label class="control" for="overhead-slider">
+                            <span class="control-header">
+                                <span>Scanner Overhead (<span id="overhead-value">60</span> ms)</span>
+                                <button type="button" class="set-default-btn" data-default-key="overheadMs">Set Default</button>
+                            </span>
+                            <input type="range" id="overhead-slider" min="0" max="300" step="1" value="60">
+                            <small>Average target-to-target travel + control overhead per shot.</small>
+                        </label>
 
-                <label class="control" for="speed-utilization-slider">
-                    <span class="control-header">
-                        <span>Speed Utilization Target (<span id="speed-utilization-value">85</span>%)</span>
-                        <button type="button" class="set-default-btn" data-default-key="speedUtilizationPercent">Set Default</button>
-                    </span>
-                    <input type="range" id="speed-utilization-slider" min="50" max="100" step="1" value="85">
-                    <small>Applies headroom to modeled raw speed before speed cap.</small>
-                </label>
+                        <label class="control" for="speed-utilization-slider">
+                            <span class="control-header">
+                                <span>Speed Utilization Target (<span id="speed-utilization-value">85</span>%)</span>
+                                <button type="button" class="set-default-btn" data-default-key="speedUtilizationPercent">Set Default</button>
+                            </span>
+                            <input type="range" id="speed-utilization-slider" min="50" max="100" step="1" value="85">
+                            <small>Applies headroom to modeled raw speed before speed cap.</small>
+                        </label>
+                    </div>
+                </details>
 
-                <label class="control" for="targeting-policy-select">
-                    <span class="control-header">
-                        <span>Targeting Policy</span>
-                        <button type="button" class="set-default-btn" data-default-key="targetingPolicy">Set Default</button>
-                    </span>
-                    <select id="targeting-policy-select">
-                        <option value="midline" selected>Midline + Urgent Fallback</option>
-                        <option value="bottom">Bottom-Most First</option>
-                    </select>
-                    <small>Midline keeps shot center stable while urgent targets still get priority.</small>
-                </label>
+                <details class="panel-dropdown">
+                    <summary>Targeting Strategy</summary>
+                    <div class="panel-dropdown-content">
+                        <label class="control" for="targeting-policy-select">
+                            <span class="control-header">
+                                <span>Targeting Policy</span>
+                                <button type="button" class="set-default-btn" data-default-key="targetingPolicy">Set Default</button>
+                            </span>
+                            <select id="targeting-policy-select">
+                                <option value="midline" selected>Midline + Urgent Fallback</option>
+                                <option value="bottom">Bottom-Most First</option>
+                            </select>
+                            <small>Midline keeps shot center stable while urgent targets still get priority.</small>
+                        </label>
 
-                <label class="control" for="target-midline-slider">
-                    <span class="control-header">
-                        <span>Target Midline (<span id="target-midline-value">10.0</span> in)</span>
-                        <button type="button" class="set-default-btn" data-default-key="targetMidlineYIn">Set Default</button>
-                    </span>
-                    <input type="range" id="target-midline-slider" min="2" max="18" step="0.1" value="10">
-                    <small>Reference shot-line center in top-to-bottom frame.</small>
-                </label>
+                        <label class="control" for="target-midline-slider">
+                            <span class="control-header">
+                                <span>Target Midline (<span id="target-midline-value">10.0</span> in)</span>
+                                <button type="button" class="set-default-btn" data-default-key="targetMidlineYIn">Set Default</button>
+                            </span>
+                            <input type="range" id="target-midline-slider" min="2" max="18" step="0.1" value="10">
+                            <small>Reference shot-line center in top-to-bottom frame.</small>
+                        </label>
 
-                <label class="control" for="target-urgent-slider">
-                    <span class="control-header">
-                        <span>Urgent Threshold (<span id="target-urgent-value">16.0</span> in)</span>
-                        <button type="button" class="set-default-btn" data-default-key="targetUrgentYIn">Set Default</button>
-                    </span>
-                    <input type="range" id="target-urgent-slider" min="4" max="20" step="0.1" value="16">
-                    <small>Targets beyond this y are treated as urgent and shot bottom-first.</small>
-                </label>
+                        <label class="control" for="target-urgent-slider">
+                            <span class="control-header">
+                                <span>Urgent Threshold (<span id="target-urgent-value">16.0</span> in)</span>
+                                <button type="button" class="set-default-btn" data-default-key="targetUrgentYIn">Set Default</button>
+                            </span>
+                            <input type="range" id="target-urgent-slider" min="4" max="20" step="0.1" value="16">
+                            <small>Targets beyond this y are treated as urgent and shot bottom-first.</small>
+                        </label>
+                    </div>
+                </details>
 
-                <div class="button-row">
-                    <button id="run-button" class="btn btn-primary" type="button">Run</button>
-                    <button id="pause-button" class="btn" type="button">Pause</button>
-                    <button id="reset-button" class="btn" type="button">Reset</button>
-                </div>
                 <p class="control-note">Changing inputs resets the run to keep comparisons consistent.</p>
             </aside>
 
@@ -152,7 +169,8 @@
                         <span><i class="legend-box zone-a"></i>Scanner A Zone</span>
                         <span><i class="legend-box zone-b"></i>Scanner B Zone</span>
                         <span><i class="legend-dot weed"></i>Live Target</span>
-                        <span><i class="legend-dot shot"></i>Shot Target</span>
+                        <span><i class="legend-dot shot"></i>Laser Flash</span>
+                        <span><i class="legend-dot dead"></i>Killed Target</span>
                     </div>
                 </section>
 
@@ -217,124 +235,147 @@
                 </div>
 
                 <section id="metrics-panel-simulation" class="metrics-tab-panel" role="tabpanel" aria-labelledby="metrics-tab-simulation">
-                    <p>Density: <strong id="density-readout">0.00</strong> weeds/sq ft</p>
-                    <p>Banded Weeds per sq ft (12" ref): <strong id="banded-weeds-readout">0.00</strong></p>
-                    <p>Banded Share of weeds/sq ft: <strong id="banded-share-readout">0.00</strong>%</p>
-                    <div class="band-share-visual">
-                        <span class="band-share-label">Banded Share</span>
-                        <div class="band-share-track"><div id="banded-share-fill" class="band-share-fill"></div></div>
-                    </div>
-                    <p>Expected Weeds in 20" x 20": <strong id="window-weeds-readout">0.00</strong></p>
-                    <p>Band Width: <strong id="band-width-readout">0.00</strong> in</p>
-                    <p>Coverage Completeness: <strong id="coverage-readout">100.00</strong>%</p>
-                    <p>Coverage Gap: <strong id="coverage-gap-readout">0.00</strong> in</p>
-                    <p id="coverage-warning" class="warning hidden">Coverage gap detected. Targets in the gap cannot be shot.</p>
-                    <p>Target Inflow @ Applied Speed: <strong id="inflow-readout">0.00</strong> /sec</p>
-                    <p>Scanner Capacity: <strong id="capacity-readout">0.00</strong> /sec</p>
-                    <p>Active Targets: <strong id="active-targets-readout">0</strong></p>
-                    <p>Queue Depth: <strong id="queue-depth-readout">0</strong></p>
-                    <p>Shots Fired: <strong id="shots-readout">0</strong></p>
-                    <p>Shots per Second: <strong id="shots-per-second-readout">0.00</strong></p>
-                    <p>Shots per Minute: <strong id="shots-per-minute-readout">0.00</strong></p>
-                    <p>Missed Targets: <strong id="missed-readout">0</strong></p>
-                    <p>Hit Rate: <strong id="hit-rate-readout">0.00</strong>%</p>
-                    <p>Shot-Line Center (Avg Y): <strong id="shot-line-readout">0.00</strong> in</p>
-                    <p>Avg Exit Margin at Shot: <strong id="shot-margin-readout">0.00</strong> s</p>
-                    <p>Queue Growth Rate: <strong id="queue-growth-readout">0.00</strong> /sec</p>
-                    <p>Scanner A Utilization: <strong id="scanner-a-util-readout">0.00</strong>%</p>
-                    <p>Scanner B Utilization: <strong id="scanner-b-util-readout">0.00</strong>%</p>
-                    <p>Elapsed Runtime: <strong id="elapsed-readout">0.0 s (0.00 min)</strong></p>
+                    <details class="panel-dropdown" open>
+                        <summary>Performance Snapshot</summary>
+                        <div class="panel-dropdown-content metrics-list">
+                            <p>Density: <strong id="density-readout">0.00</strong> weeds/sq ft</p>
+                            <p>Banded Weeds per sq ft (12" ref): <strong id="banded-weeds-readout">0.00</strong></p>
+                            <p>Banded Share of weeds/sq ft: <strong id="banded-share-readout">0.00</strong>%</p>
+                            <div class="band-share-visual">
+                                <span class="band-share-label">Banded Share</span>
+                                <div class="band-share-track"><div id="banded-share-fill" class="band-share-fill"></div></div>
+                            </div>
+                            <p>Expected Weeds in 20" x 20": <strong id="window-weeds-readout">0.00</strong></p>
+                            <p>Band Width: <strong id="band-width-readout">0.00</strong> in</p>
+                            <p>Coverage Completeness: <strong id="coverage-readout">100.00</strong>%</p>
+                            <p>Coverage Gap: <strong id="coverage-gap-readout">0.00</strong> in</p>
+                            <p id="coverage-warning" class="warning hidden">Coverage gap detected. Targets in the gap cannot be shot.</p>
+                            <p>Target Inflow @ Applied Speed: <strong id="inflow-readout">0.00</strong> /sec</p>
+                            <p>Scanner Capacity: <strong id="capacity-readout">0.00</strong> /sec</p>
+                            <p>Hit Rate: <strong id="hit-rate-readout">0.00</strong>%</p>
+                            <p>Elapsed Runtime: <strong id="elapsed-readout">0.0 s (0.00 min)</strong></p>
+                        </div>
+                    </details>
 
-                    <details>
+                    <details class="panel-dropdown" open>
+                        <summary>Target Queue + Scanner Load</summary>
+                        <div class="panel-dropdown-content metrics-list">
+                            <p>Active Targets: <strong id="active-targets-readout">0</strong></p>
+                            <p>Queue Depth: <strong id="queue-depth-readout">0</strong></p>
+                            <p>Shots Fired: <strong id="shots-readout">0</strong></p>
+                            <p>Shots per Second: <strong id="shots-per-second-readout">0.00</strong></p>
+                            <p>Shots per Minute: <strong id="shots-per-minute-readout">0.00</strong></p>
+                            <p>Missed Targets: <strong id="missed-readout">0</strong></p>
+                            <p>Shot-Line Center (Avg Y): <strong id="shot-line-readout">0.00</strong> in</p>
+                            <p>Avg Exit Margin at Shot: <strong id="shot-margin-readout">0.00</strong> s</p>
+                            <p>Queue Growth Rate: <strong id="queue-growth-readout">0.00</strong> /sec</p>
+                            <p>Scanner A Utilization: <strong id="scanner-a-util-readout">0.00</strong>%</p>
+                            <p>Scanner B Utilization: <strong id="scanner-b-util-readout">0.00</strong>%</p>
+                        </div>
+                    </details>
+
+                    <details class="panel-dropdown">
                         <summary>Model Details (Raw Values)</summary>
-                        <p>Raw Modeled Speed: <strong id="raw-speed-readout">0.00</strong> mph</p>
-                        <p>Headroom-Adjusted Raw Speed: <strong id="utilized-speed-readout">0.00</strong> mph</p>
-                        <p>Applied Speed: <strong id="applied-speed-readout">0.00</strong> mph</p>
-                        <p>Speed Utilization Target: <strong id="utilization-target-readout">0</strong>%</p>
-                        <p>Shoot Time: <strong id="shoot-time-readout">0.00</strong> ms</p>
-                        <p>Overhead Time: <strong id="overhead-readout">0.00</strong> ms</p>
-                        <p>Time Per Target: <strong id="time-per-target-readout">0.00</strong> ms</p>
-                        <p>Targeting Policy: <strong id="targeting-policy-readout">midline</strong></p>
-                        <p>Target Midline: <strong id="target-midline-readout">0.0</strong> in</p>
-                        <p>Urgent Threshold: <strong id="target-urgent-readout">0.0</strong> in</p>
-                        <p>Scanner A Range: <strong id="scanner-a-range-readout">0.0 - 0.0</strong> in</p>
-                        <p>Scanner B Range: <strong id="scanner-b-range-readout">0.0 - 0.0</strong> in</p>
+                        <div class="panel-dropdown-content metrics-list">
+                            <p>Raw Modeled Speed: <strong id="raw-speed-readout">0.00</strong> mph</p>
+                            <p>Headroom-Adjusted Raw Speed: <strong id="utilized-speed-readout">0.00</strong> mph</p>
+                            <p>Applied Speed: <strong id="applied-speed-readout">0.00</strong> mph</p>
+                            <p>Speed Utilization Target: <strong id="utilization-target-readout">0</strong>%</p>
+                            <p>Shoot Time: <strong id="shoot-time-readout">0.00</strong> ms</p>
+                            <p>Overhead Time: <strong id="overhead-readout">0.00</strong> ms</p>
+                            <p>Time Per Target: <strong id="time-per-target-readout">0.00</strong> ms</p>
+                            <p>Targeting Policy: <strong id="targeting-policy-readout">midline</strong></p>
+                            <p>Target Midline: <strong id="target-midline-readout">0.0</strong> in</p>
+                            <p>Urgent Threshold: <strong id="target-urgent-readout">0.0</strong> in</p>
+                            <p>Scanner A Range: <strong id="scanner-a-range-readout">0.0 - 0.0</strong> in</p>
+                            <p>Scanner B Range: <strong id="scanner-b-range-readout">0.0 - 0.0</strong> in</p>
+                        </div>
                     </details>
                 </section>
 
                 <section id="metrics-panel-coverage" class="metrics-tab-panel hidden" role="tabpanel" aria-labelledby="metrics-tab-coverage">
-                    <div class="coverage-settings-grid">
-                        <label class="control" for="machine-width-input">
-                            <span class="control-header">
-                                <span>Machine Width (ft)</span>
-                                <button type="button" class="set-default-btn" data-default-key="machineWidthFt">Set Default</button>
-                            </span>
-                            <input type="number" id="machine-width-input" min="1" max="120" step="0.1" value="20">
-                            <small>Coverage uses speed x machine width x efficiency.</small>
-                        </label>
+                    <details class="panel-dropdown" open>
+                        <summary>Coverage Planner Inputs</summary>
+                        <div class="panel-dropdown-content">
+                            <div class="coverage-settings-grid">
+                                <label class="control" for="machine-width-input">
+                                    <span class="control-header">
+                                        <span>Machine Width (ft)</span>
+                                        <button type="button" class="set-default-btn" data-default-key="machineWidthFt">Set Default</button>
+                                    </span>
+                                    <input type="number" id="machine-width-input" min="1" max="120" step="0.1" value="20">
+                                    <small>Coverage uses speed x machine width x efficiency.</small>
+                                </label>
 
-                        <label class="control" for="machine-length-input">
-                            <span class="control-header">
-                                <span>Machine Length (ft)</span>
-                                <button type="button" class="set-default-btn" data-default-key="machineLengthFt">Set Default</button>
-                            </span>
-                            <input type="number" id="machine-length-input" min="1" max="80" step="0.1" value="25">
-                            <small>Display and planning context.</small>
-                        </label>
+                                <label class="control" for="machine-length-input">
+                                    <span class="control-header">
+                                        <span>Machine Length (ft)</span>
+                                        <button type="button" class="set-default-btn" data-default-key="machineLengthFt">Set Default</button>
+                                    </span>
+                                    <input type="number" id="machine-length-input" min="1" max="80" step="0.1" value="25">
+                                    <small>Display and planning context.</small>
+                                </label>
 
-                        <label class="control" for="field-area-input">
-                            <span class="control-header">
-                                <span>Field Size (acres)</span>
-                                <button type="button" class="set-default-btn" data-default-key="fieldAreaAcres">Set Default</button>
-                            </span>
-                            <input type="number" id="field-area-input" min="1" max="2000" step="1" value="40">
-                            <small>Total area to cover.</small>
-                        </label>
+                                <label class="control" for="field-area-input">
+                                    <span class="control-header">
+                                        <span>Field Size (acres)</span>
+                                        <button type="button" class="set-default-btn" data-default-key="fieldAreaAcres">Set Default</button>
+                                    </span>
+                                    <input type="number" id="field-area-input" min="1" max="2000" step="1" value="40">
+                                    <small>Total area to cover.</small>
+                                </label>
 
-                        <label class="control" for="field-shape-select">
-                            <span class="control-header">
-                                <span>Field Shape</span>
-                                <button type="button" class="set-default-btn" data-default-key="fieldShape">Set Default</button>
-                            </span>
-                            <select id="field-shape-select">
-                                <option value="square" selected>Square</option>
-                                <option value="circle">Circle</option>
-                            </select>
-                            <small>Pass paint map uses this boundary.</small>
-                        </label>
-                    </div>
+                                <label class="control" for="field-shape-select">
+                                    <span class="control-header">
+                                        <span>Field Shape</span>
+                                        <button type="button" class="set-default-btn" data-default-key="fieldShape">Set Default</button>
+                                    </span>
+                                    <select id="field-shape-select">
+                                        <option value="square" selected>Square</option>
+                                        <option value="circle">Circle</option>
+                                    </select>
+                                    <small>Pass paint map uses this boundary.</small>
+                                </label>
+                            </div>
 
-                    <label class="control" for="coverage-efficiency-slider">
-                        <span class="control-header">
-                            <span>Field Efficiency (<span id="coverage-efficiency-value">80</span>%)</span>
-                            <button type="button" class="set-default-btn" data-default-key="coverageEfficiencyPercent">Set Default</button>
-                        </span>
-                        <input type="range" id="coverage-efficiency-slider" min="30" max="100" step="1" value="80">
-                        <small>Default is 80%; includes turns/overlap/operational losses.</small>
-                    </label>
+                            <label class="control" for="coverage-efficiency-slider">
+                                <span class="control-header">
+                                    <span>Field Efficiency (<span id="coverage-efficiency-value">80</span>%)</span>
+                                    <button type="button" class="set-default-btn" data-default-key="coverageEfficiencyPercent">Set Default</button>
+                                </span>
+                                <input type="range" id="coverage-efficiency-slider" min="30" max="100" step="1" value="80">
+                                <small>Default is 80%; includes turns/overlap/operational losses.</small>
+                            </label>
 
-                    <label class="control" for="coverage-hours-slider">
-                        <span class="control-header">
-                            <span>Selected Paint Time (<span id="coverage-hours-value">1.0</span> hr)</span>
-                            <button type="button" class="set-default-btn" data-default-key="coverageHours">Set Default</button>
-                        </span>
-                        <input type="range" id="coverage-hours-slider" min="0.1" max="24" step="0.1" value="1">
-                        <small>Field map paints coverage at this elapsed duration.</small>
-                    </label>
+                            <label class="control" for="coverage-hours-slider">
+                                <span class="control-header">
+                                    <span>Selected Paint Time (<span id="coverage-hours-value">1.0</span> hr)</span>
+                                    <button type="button" class="set-default-btn" data-default-key="coverageHours">Set Default</button>
+                                </span>
+                                <input type="range" id="coverage-hours-slider" min="0.1" max="24" step="0.1" value="1">
+                                <small>Field map paints coverage at this elapsed duration.</small>
+                            </label>
+                        </div>
+                    </details>
 
-                    <div class="coverage-kpi-grid">
-                        <p>Applied Speed from Simulation: <strong id="coverage-speed-readout">0.00</strong> mph</p>
-                        <p>Travel Speed: <strong id="coverage-travel-fps-readout">0.00</strong> ft/sec</p>
-                        <p>Coverage Rate: <strong id="coverage-rate-sqft-hour-readout">0.00</strong> sq ft/hr</p>
-                        <p>Coverage Rate: <strong id="coverage-rate-acres-hour-readout">0.00</strong> acres/hr</p>
-                        <p>Field Area: <strong id="coverage-field-area-readout">0.00</strong> acres</p>
-                        <p>Field Width: <strong id="coverage-field-width-readout">0.00</strong> ft</p>
-                        <p>Estimated Time to Full Coverage: <strong id="coverage-hours-to-finish-readout">N/A</strong> hr</p>
-                        <p>Covered in Selected Time: <strong id="coverage-covered-area-readout">0.00</strong> acres</p>
-                        <p>Completion at Selected Time: <strong id="coverage-percent-readout">0.00</strong>%</p>
-                        <p>Passes Completed: <strong id="coverage-passes-readout">0 / 0</strong></p>
-                        <p>Active Pass: <strong id="coverage-active-pass-readout">N/A</strong></p>
-                    </div>
+                    <details class="panel-dropdown" open>
+                        <summary>Coverage KPI Summary</summary>
+                        <div class="panel-dropdown-content">
+                            <div class="coverage-kpi-grid">
+                                <p>Applied Speed from Simulation: <strong id="coverage-speed-readout">0.00</strong> mph</p>
+                                <p>Travel Speed: <strong id="coverage-travel-fps-readout">0.00</strong> ft/sec</p>
+                                <p>Coverage Rate: <strong id="coverage-rate-sqft-hour-readout">0.00</strong> sq ft/hr</p>
+                                <p>Coverage Rate: <strong id="coverage-rate-acres-hour-readout">0.00</strong> acres/hr</p>
+                                <p>Field Area: <strong id="coverage-field-area-readout">0.00</strong> acres</p>
+                                <p>Field Width: <strong id="coverage-field-width-readout">0.00</strong> ft</p>
+                                <p>Estimated Time to Full Coverage: <strong id="coverage-hours-to-finish-readout">N/A</strong> hr</p>
+                                <p>Covered in Selected Time: <strong id="coverage-covered-area-readout">0.00</strong> acres</p>
+                                <p>Completion at Selected Time: <strong id="coverage-percent-readout">0.00</strong>%</p>
+                                <p>Passes Completed: <strong id="coverage-passes-readout">0 / 0</strong></p>
+                                <p>Active Pass: <strong id="coverage-active-pass-readout">N/A</strong></p>
+                            </div>
+                        </div>
+                    </details>
 
                     <p class="control-note">Coverage KPI is based on simulation speed and your planner inputs.</p>
                 </section>

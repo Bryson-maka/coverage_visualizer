@@ -120,7 +120,7 @@ Current limitations (known and intentional):
 - No per-scanner motion-path model.
 - No target classification or confidence model.
 - No deterministic random seed yet for replay.
-- No persistence/export of run results.
+- Run history/results are not persisted or exportable yet (only UI input defaults persist locally).
 
 ## 9) Visual scale mapping
 

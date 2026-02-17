@@ -86,6 +86,7 @@ export function createRenderer({ dom, state, core, config }) {
         dom.weedLayer.innerHTML = '';
 
         const fragment = document.createDocumentFragment();
+        const activeShotDurationMs = Math.max(0, Number(state.model.shootTimeMs));
 
         for (const weed of state.weeds) {
             if (weed.yIn < -0.5 || weed.yIn > core.SCAN_HEIGHT_IN + 0.5) {
@@ -101,6 +102,11 @@ export function createRenderer({ dom, state, core, config }) {
                 `translate(${inToPx(weed.xIn)} ${inToPx(weed.yIn)}) rotate(${weed.rotationDeg})`
             );
 
+            let visualStateClass = 'weed-live';
+            if (weed.shot) {
+                visualStateClass = weed.shotAgeMs < activeShotDurationMs ? 'weed-shooting' : 'weed-dead';
+            }
+
             for (let leafIndex = 0; leafIndex < visual.leafCount; leafIndex += 1) {
                 const path = createSvgElement('path');
                 const angle = (leafIndex / visual.leafCount) * 360;
@@ -108,7 +114,7 @@ export function createRenderer({ dom, state, core, config }) {
 
                 path.setAttribute('d', weed.type === 'broadleaf' ? config.BROADLEAF_LEAF_PATH : config.GRASS_LEAF_PATH);
                 path.setAttribute('transform', `rotate(${rotation}) scale(${leafLengthPx})`);
-                path.setAttribute('class', `weed-leaf weed-${weed.type} ${weed.shot ? 'weed-shot' : 'weed-live'}`);
+                path.setAttribute('class', `weed-leaf weed-${weed.type} ${visualStateClass}`);
                 group.appendChild(path);
             }
 

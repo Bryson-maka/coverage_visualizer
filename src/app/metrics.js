@@ -9,7 +9,13 @@ export function createMetricsPresenter({ dom, state, core }) {
     }
 
     function updateMetrics() {
-        const activeTargets = state.weeds.filter((weed) => !weed.shot && weed.yIn >= 0 && weed.yIn <= core.SCAN_HEIGHT_IN).length;
+        const activeTargets = state.weeds.filter(
+            (weed) => !weed.shot &&
+                weed.yIn >= 0 &&
+                weed.yIn <= core.SCAN_HEIGHT_IN &&
+                weed.xIn >= state.band.start &&
+                weed.xIn <= state.band.end
+        ).length;
         const queueDepth = activeTargets;
         const totalResolved = state.stats.shots + state.stats.missed;
         const hitRate = totalResolved > 0 ? (state.stats.shots / totalResolved) * 100 : 0;

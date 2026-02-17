@@ -6,9 +6,11 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 
 - [ ] App loads without console errors.
 - [ ] Scan window, controls, and metrics all render.
+- [ ] `Run`, `Pause`, and `Reset` buttons are visible in the top header next to the title.
 - [ ] `Applied Machine Speed` displays a numeric value.
 - [ ] Metrics tabs switch between `Simulation` and `Coverage Data`.
-- [ ] `Model Details` dropdown can be opened/closed.
+- [ ] Left-panel control groups can be opened/closed.
+- [ ] Metrics dropdown groups can be opened/closed.
 
 ## Control Ranges
 
@@ -35,6 +37,12 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 - [ ] `Pause` stops motion.
 - [ ] `Reset` clears shots/misses/elapsed time.
 - [ ] Changing any input auto-resets and pauses simulation.
+
+## Saved Defaults
+
+- [ ] Clicking any `Set Default` button shows a temporary saved state on that button.
+- [ ] Reloading the page restores previously saved defaults.
+- [ ] `Reset Saved Defaults` clears saved defaults and restores built-in defaults.
 
 ## Speed + Cap Behavior
 
