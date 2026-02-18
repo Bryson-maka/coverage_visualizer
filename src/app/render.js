@@ -96,7 +96,6 @@ export function createRenderer({ dom, state, core, config }) {
         dom.weedLayer.innerHTML = '';
 
         const fragment = document.createDocumentFragment();
-        const activeShotDurationMs = Math.max(0, Number(state.model.shootTimeMs));
 
         for (const weed of state.weeds) {
             if (weed.yIn < -0.5 || weed.yIn > core.SCAN_HEIGHT_IN + 0.5) {
@@ -114,7 +113,7 @@ export function createRenderer({ dom, state, core, config }) {
 
             let visualStateClass = 'weed-live';
             if (weed.shot) {
-                visualStateClass = weed.shotAgeMs < activeShotDurationMs ? 'weed-shooting' : 'weed-dead';
+                visualStateClass = weed.shotComplete ? 'weed-dead' : 'weed-shooting';
             }
 
             for (let leafIndex = 0; leafIndex < visual.leafCount; leafIndex += 1) {

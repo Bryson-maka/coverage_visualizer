@@ -1,4 +1,6 @@
 export function createSimulationEngine({ core, dom, state, renderer, metrics, config }) {
+    const MAX_PASS_SNAPSHOTS = 20;
+
     function isInTargetBand(weed) {
         return weed.xIn >= state.band.start && weed.xIn <= state.band.end;
     }
@@ -10,15 +12,22 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
     }
 
     function createWeed(xIn, yIn) {
+        const size = Number(dom.sizeSlider.value);
+        const shotRequiredMs = core.computeShootTimeMs(size);
+
         return {
             id: state.nextWeedId,
             xIn,
             yIn,
-            size: Number(dom.sizeSlider.value),
+            size,
             type: Math.random() < 0.5 ? 'broadleaf' : 'grass',
             rotationDeg: Math.random() * 360,
             shot: false,
-            shotAgeMs: 0
+            shotComplete: false,
+            shotAgeMs: 0,
+            shotRequiredMs,
+            doseAppliedMs: 0,
+            preResolved: false
         };
     }
 
@@ -26,7 +35,10 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
         const weed = createWeed(xIn, yIn);
         if (options.shot === true) {
             weed.shot = true;
-            weed.shotAgeMs = Number.POSITIVE_INFINITY;
+            weed.shotComplete = true;
+            weed.doseAppliedMs = weed.shotRequiredMs;
+            weed.shotAgeMs = weed.shotRequiredMs;
+            weed.preResolved = true;
         }
 
         state.weeds.push(weed);
@@ -99,12 +111,130 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
         state.stats.lastActiveTargets = activeTargets;
     }
 
+    function getCurrentSettingsSnapshot() {
+        return {
+            densityPerSqFt: Number(dom.densitySlider.value),
+            weedSize: Number(dom.sizeSlider.value),
+            bandWidthIn: Number(dom.bandWidthSlider.value),
+            speedUtilizationPercent: Number(dom.speedUtilizationSlider.value),
+            targetingPolicy: dom.targetingPolicySelect.value,
+            appliedSpeedMph: Number(state.model.appliedSpeedMph)
+        };
+    }
+
+    function stopRecording(reason = 'manual') {
+        if (!state.recording.isActive) {
+            return;
+        }
+
+        const durationMs = Math.max(0, state.stats.elapsedMs - state.recording.startedElapsedMs);
+        const counts = {
+            shot: 0,
+            partial: 0,
+            missed: 0
+        };
+
+        for (const event of state.recording.events) {
+            if (event.result === 'shot') {
+                counts.shot += 1;
+            } else if (event.result === 'partial') {
+                counts.partial += 1;
+            } else {
+                counts.missed += 1;
+            }
+        }
+
+        const snapshot = {
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            createdAtMs: Date.now(),
+            reason,
+            durationMs: Math.min(durationMs, state.recording.limitMs),
+            settings: state.recording.settingsSnapshot || getCurrentSettingsSnapshot(),
+            counts: {
+                ...counts,
+                total: counts.shot + counts.partial + counts.missed
+            },
+            events: [...state.recording.events]
+        };
+
+        state.passSnapshots.unshift(snapshot);
+        if (state.passSnapshots.length > MAX_PASS_SNAPSHOTS) {
+            state.passSnapshots.length = MAX_PASS_SNAPSHOTS;
+        }
+
+        state.recording.isActive = false;
+        state.recording.startedElapsedMs = 0;
+        state.recording.events = [];
+        state.recording.settingsSnapshot = null;
+    }
+
+    function cancelRecording() {
+        if (!state.recording.isActive) {
+            return;
+        }
+
+        state.recording.isActive = false;
+        state.recording.startedElapsedMs = 0;
+        state.recording.events = [];
+        state.recording.settingsSnapshot = null;
+    }
+
+    function startRecording() {
+        if (state.recording.isActive) {
+            return;
+        }
+
+        state.recording.isActive = true;
+        state.recording.startedElapsedMs = state.stats.elapsedMs;
+        state.recording.events = [];
+        state.recording.settingsSnapshot = getCurrentSettingsSnapshot();
+    }
+
+    function toggleRecording() {
+        if (state.recording.isActive) {
+            stopRecording('manual');
+        } else {
+            startRecording();
+        }
+
+        metrics.updateMetrics();
+    }
+
+    function maybeFinalizeRecordingByLimit() {
+        if (!state.recording.isActive) {
+            return;
+        }
+
+        const elapsedMs = state.stats.elapsedMs - state.recording.startedElapsedMs;
+        if (elapsedMs >= state.recording.limitMs) {
+            stopRecording('limit');
+        }
+    }
+
+    function recordExitEvent(weed, result) {
+        if (!state.recording.isActive) {
+            return;
+        }
+
+        state.recording.events.push({
+            xIn: core.clamp(weed.xIn, 0, core.SCAN_WIDTH_IN),
+            timeMs: Math.max(0, state.stats.elapsedMs - state.recording.startedElapsedMs),
+            result
+        });
+    }
+
     function resetSimulationState() {
+        if (state.recording.isActive) {
+            cancelRecording();
+        }
+
         state.spawnCarry = 0;
         state.nextWeedId = 1;
         state.weeds = [];
         state.stats.spawned = 0;
         state.stats.shots = 0;
+        state.stats.fullyShot = 0;
+        state.stats.partial = 0;
         state.stats.missed = 0;
         state.stats.elapsedMs = 0;
         state.stats.shotSamples = 0;
@@ -150,10 +280,38 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
 
     function moveWeeds(distanceIn, deltaMs) {
         for (const weed of state.weeds) {
-            weed.yIn += distanceIn;
+            const previousYIn = weed.yIn;
+            const nextYIn = previousYIn + distanceIn;
+
             if (weed.shot) {
                 weed.shotAgeMs += deltaMs;
+
+                if (!weed.shotComplete) {
+                    let inFrameTimeMs = 0;
+
+                    if (distanceIn <= 0) {
+                        inFrameTimeMs = previousYIn < core.SCAN_HEIGHT_IN ? deltaMs : 0;
+                    } else if (previousYIn < core.SCAN_HEIGHT_IN) {
+                        if (nextYIn <= core.SCAN_HEIGHT_IN) {
+                            inFrameTimeMs = deltaMs;
+                        } else {
+                            const fractionInFrame = core.clamp((core.SCAN_HEIGHT_IN - previousYIn) / distanceIn, 0, 1);
+                            inFrameTimeMs = deltaMs * fractionInFrame;
+                        }
+                    }
+
+                    weed.doseAppliedMs = Math.min(
+                        weed.shotRequiredMs,
+                        weed.doseAppliedMs + Math.max(0, inFrameTimeMs)
+                    );
+
+                    if (weed.doseAppliedMs >= weed.shotRequiredMs) {
+                        weed.shotComplete = true;
+                    }
+                }
             }
+
+            weed.yIn = nextYIn;
         }
     }
 
@@ -165,6 +323,7 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
             scanner.cooldownMs <= 0 &&
             shotsThisStep < config.MAX_SHOTS_PER_STEP_PER_SCANNER
         ) {
+            const minimumExitMarginIn = state.model.appliedInchesPerSecond * (state.model.shootTimeMs / 1000);
             const target = core.selectTargetByPolicy(
                 state.weeds,
                 zoneStartIn,
@@ -175,7 +334,8 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
                 {
                     centerPriorityActive: state.model.centerPriorityActive,
                     centerPriorityWidthIn: state.model.centerPriorityWidthIn,
-                    centerLineXIn: state.model.bandCenterXIn
+                    centerLineXIn: state.model.bandCenterXIn,
+                    minimumExitMarginIn
                 }
             );
 
@@ -185,6 +345,9 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
             }
 
             target.shot = true;
+            target.shotComplete = false;
+            target.doseAppliedMs = 0;
+            target.shotRequiredMs = core.computeShootTimeMs(target.size);
             target.shotAgeMs = 0;
 
             state.stats.shots += 1;
@@ -219,8 +382,17 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
 
         for (const weed of state.weeds) {
             if (weed.yIn > core.SCAN_HEIGHT_IN) {
-                if (!weed.shot && isInTargetBand(weed)) {
-                    state.stats.missed += 1;
+                if (isInTargetBand(weed) && !weed.preResolved) {
+                    if (!weed.shot) {
+                        state.stats.missed += 1;
+                        recordExitEvent(weed, 'missed');
+                    } else if (weed.shotComplete) {
+                        state.stats.fullyShot += 1;
+                        recordExitEvent(weed, 'shot');
+                    } else {
+                        state.stats.partial += 1;
+                        recordExitEvent(weed, 'partial');
+                    }
                 }
                 continue;
             }
@@ -239,6 +411,7 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
         moveWeeds(distanceIn, deltaMs);
         processScanners(deltaMs);
         removeExpiredWeeds();
+        maybeFinalizeRecordingByLimit();
         trackQueueGrowth(deltaSeconds);
         renderer.renderWeeds();
         metrics.updateMetrics();
@@ -280,6 +453,7 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
     return {
         setRunning,
         startLoop,
-        resetSimulationState
+        resetSimulationState,
+        toggleRecording
     };
 }

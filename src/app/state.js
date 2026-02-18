@@ -23,6 +23,8 @@ export function createInitialState(core, config) {
         stats: {
             spawned: 0,
             shots: 0,
+            fullyShot: 0,
+            partial: 0,
             missed: 0,
             elapsedMs: 0,
             shotSamples: 0,
@@ -32,6 +34,14 @@ export function createInitialState(core, config) {
             queueGrowthEwmaPerSec: 0,
             lastActiveTargets: 0
         },
+        recording: {
+            isActive: false,
+            limitMs: 30000,
+            startedElapsedMs: 0,
+            events: [],
+            settingsSnapshot: null
+        },
+        passSnapshots: [],
         model: {
             shootTimeMs: 0,
             timePerTargetMs: 0,

@@ -6,7 +6,8 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 
 - [ ] App loads without console errors.
 - [ ] Scan window, controls, and metrics all render.
-- [ ] `Run`, `Pause`, and `Reset` buttons are visible in the top header next to the title.
+- [ ] `Run`, `Pause`, and `Reset` buttons are visible in the `Applied Machine Speed` card.
+- [ ] `Record 30s Pass` button and recorder status are visible.
 - [ ] `Applied Machine Speed` displays a numeric value.
 - [ ] Metrics tabs switch between `Simulation` and `Coverage Data`.
 - [ ] Left-panel control groups can be opened/closed.
@@ -69,10 +70,20 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 
 - [ ] Shots per second increases while shots are being fired.
 - [ ] Shots per minute tracks shots/sec x 60.
+- [ ] Partially shot targets increases only when targeted weeds exit before full dose.
 - [ ] Shot-line center remains near configured midline under moderate load.
 - [ ] Queue growth rate trends toward zero or negative when utilization target is reduced.
 - [ ] Scanner utilization values remain below `100%` with headroom enabled.
 - [ ] Under overloaded bottom-policy operation (`Speed Utilization > 100%` where load exceeds capacity), misses appear farther from band center than centerline targets.
+
+## Pass Snapshot Recorder
+
+- [ ] Clicking `Record 30s Pass` toggles to `Stop Recording`.
+- [ ] Recorder status shows remaining time while active.
+- [ ] Recorder auto-stops after 30 seconds of simulation runtime.
+- [ ] Snapshot cards appear in the scrollable history list.
+- [ ] Snapshot card counts include `Shot`, `Partial`, and `Missed`.
+- [ ] Snapshot cards include settings context (density, size, band, utilization, policy, speed).
 
 ## Coverage Data Tab
 

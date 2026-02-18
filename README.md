@@ -11,10 +11,16 @@ Live URL: `https://bryson-maka.github.io/coverage_visualizer/`
   - `Midline + Urgent Fallback`
   - `Centerline + Bottom Fallback` (default)
   - `Bottom-Most Only`
+- Dose-aware targeting:
+  - Targets that cannot receive full dose before exit are skipped.
+  - Partial-dose exits are tracked separately from misses.
 - Runtime flow model:
   - Weeds move top-to-bottom in a 24" x 20" frame.
   - Dual scanners service targets within configured zones.
   - Shot/hit/miss and queue metrics update live.
+- Pass snapshot recorder:
+  - `Record 30s Pass` captures shot vs partial vs missed outcomes.
+  - Snapshot history is scrollable with settings context and event map.
 - Speed modeling:
   - Raw modeled speed from load and scanner capacity.
   - Utilization headroom.

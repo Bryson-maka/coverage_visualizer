@@ -297,3 +297,21 @@ test('bottom policy falls back to bottom-most when no centerline candidate exist
 
     near(selected.yIn, 18.1, 1e-9);
 });
+
+test('selection skips targets that cannot get full dose before exit', () => {
+    const weeds = [
+        { xIn: 8, yIn: 19.9, shot: false }
+    ];
+
+    const selected = core.selectTargetByPolicy(
+        weeds,
+        5,
+        10,
+        'bottom-only',
+        10,
+        16,
+        { minimumExitMarginIn: 0.2 }
+    );
+
+    assert.equal(selected, null);
+});

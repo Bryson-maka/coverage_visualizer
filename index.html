@@ -355,6 +355,7 @@
                             <p>Shots per Minute: <strong id="shots-per-minute-readout">0.00</strong></p>
                             <p>Shots per Hour: <strong id="shots-per-hour-readout">0.00</strong></p>
                             <p>Missed Targets: <strong id="missed-readout">0</strong></p>
+                            <p>Partially Shot Targets: <strong id="partial-readout">0</strong></p>
                             <p>Shot-Line Center (Avg Y): <strong id="shot-line-readout">0.00</strong> in</p>
                             <p>Avg Exit Margin at Shot: <strong id="shot-margin-readout">0.00</strong> s</p>
                             <p>Queue Growth Rate: <strong id="queue-growth-readout">0.00</strong> /sec</p>
@@ -387,10 +388,51 @@
                             <p>Scanner B Range: <strong id="scanner-b-range-readout">0.0 - 0.0</strong> in</p>
                         </div>
                     </details>
+
+                    <details class="panel-dropdown" open>
+                        <summary>Pass Snapshot Recorder</summary>
+                        <div class="panel-dropdown-content">
+                            <div class="snapshot-toolbar">
+                                <button id="record-pass-button" class="btn" type="button">Record 30s Pass</button>
+                                <p id="record-pass-status" class="record-status">Idle</p>
+                            </div>
+                            <div id="pass-snapshot-history" class="snapshot-history">
+                                <p class="snapshot-empty">No pass snapshots yet.</p>
+                            </div>
+                        </div>
+                    </details>
                 </section>
             </aside>
         </section>
     </main>
+
+    <div id="snapshot-detail-modal" class="snapshot-modal hidden" aria-hidden="true">
+        <div id="snapshot-detail-backdrop" class="snapshot-modal-backdrop"></div>
+        <section
+            id="snapshot-detail-dialog"
+            class="snapshot-modal-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="snapshot-detail-title"
+        >
+            <div class="snapshot-modal-header">
+                <div>
+                    <p id="snapshot-detail-title" class="snapshot-modal-title">Pass Snapshot</p>
+                    <p id="snapshot-detail-settings" class="snapshot-modal-settings">Density 0 | Size 0 | Band 0.0 in</p>
+                </div>
+                <button id="snapshot-detail-close" class="btn" type="button" aria-label="Close pass snapshot detail">Close</button>
+            </div>
+            <p id="snapshot-detail-counts" class="snapshot-modal-counts">Shot 0 · Partial 0 · Missed 0 · Total 0</p>
+            <p class="snapshot-modal-legend">
+                <span class="snapshot-dot shot"></span>Shot
+                <span class="snapshot-dot partial"></span>Partial
+                <span class="snapshot-dot missed"></span>Missed
+            </p>
+            <div id="snapshot-detail-scroll" class="snapshot-detail-scroll">
+                <div id="snapshot-detail-plot" class="snapshot-detail-plot"></div>
+            </div>
+        </section>
+    </div>
 
     <script src="simulator-core.js"></script>
     <script type="module" src="src/main.js"></script>

@@ -92,6 +92,37 @@ function bindEvents() {
         resetAndRecomputeSimulation();
     });
 
+    dom.recordPassButton.addEventListener('click', () => {
+        engine.toggleRecording();
+    });
+
+    dom.passSnapshotHistory.addEventListener('click', (event) => {
+        metrics.openSnapshotFromEventTarget(event.target);
+    });
+
+    dom.passSnapshotHistory.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+        }
+        if (metrics.openSnapshotFromEventTarget(event.target)) {
+            event.preventDefault();
+        }
+    });
+
+    dom.snapshotDetailClose.addEventListener('click', () => {
+        metrics.closeSnapshotDetail();
+    });
+
+    dom.snapshotDetailBackdrop.addEventListener('click', () => {
+        metrics.closeSnapshotDetail();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            metrics.closeSnapshotDetail();
+        }
+    });
+
     dom.metricsTabSimulation.addEventListener('click', () => {
         setMetricsTab('simulation');
     });

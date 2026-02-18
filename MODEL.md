@@ -104,7 +104,7 @@ Interpretation:
 
 ## 7) Targeting behavior
 
-Two targeting strategies are available:
+Three targeting strategies are available:
 
 - `bottom` (default): centerline + bottom fallback. Under overload, scanners prefer bottom-most targets near band center (crop line), then fall back to bottom-most across zone.
 - `bottom-only`: pure bottom-most selection across zone.
@@ -120,6 +120,19 @@ Overload-aware centerline protection for `bottom` policy:
   - `center_priority_width_in = clamp(min_width + (overload_ratio - 1) * band_width * gain, min_width, band_width)`
   - defaults: `min_width=3 in`, `gain=0.5`, activation threshold `overload_ratio > 1.02`.
 - This shifts expected misses outward (away from crop center) as overload increases.
+
+Full-dose feasibility guard:
+
+- Before target selection, candidates are filtered by required exit margin:
+  - `minimum_exit_margin_in = applied_inches_per_second * (shoot_time_ms / 1000)`
+  - candidate is targetable only when `(scan_height_in - y_in) >= minimum_exit_margin_in`
+- This prevents selecting weeds that cannot receive a full dose before leaving the frame.
+
+Partial-shot definition:
+
+- `shot`: exits frame after receiving full required dose.
+- `partial`: was targeted but exits frame before full dose was accumulated.
+- `missed`: exits frame without being targeted.
 
 ## 8) Stability and limitations
 
@@ -197,3 +210,14 @@ Runtime observability metrics:
 - Average exit margin at shot time (seconds to frame exit when shot)
 - Queue growth rate (`targets/sec`, EWMA)
 - Per-scanner utilization (% of theoretical scanner service rate)
+
+## 12) Pass Snapshot Recorder
+
+- Recorder captures a 30-second simulation-time window (`30000 ms` limit).
+- Stored per-event categories:
+  - `shot` (full dose)
+  - `partial` (dose incomplete at frame exit)
+  - `missed` (never targeted)
+- Each snapshot stores settings context:
+  - density, weed size, band width, speed utilization, targeting policy, applied speed.
+- History keeps recent snapshots in a scrollable list for side-by-side tuning review.

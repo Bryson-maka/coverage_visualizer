@@ -563,19 +563,28 @@
             return null;
         }
 
+        const safeOptions = options && typeof options === 'object' ? options : {};
+        const minimumExitMarginIn = Math.max(0, toNumber(safeOptions.minimumExitMarginIn, 0));
+        const viableCandidates = minimumExitMarginIn > 0
+            ? candidates.filter((weed) => (SCAN_HEIGHT_IN - weed.yIn) >= minimumExitMarginIn)
+            : candidates;
+
+        if (viableCandidates.length === 0) {
+            return null;
+        }
+
         if (policy === 'bottom-only') {
-            return selectBottomMostFromCandidates(candidates);
+            return selectBottomMostFromCandidates(viableCandidates);
         }
 
         if (policy !== 'midline') {
-            const safeOptions = options && typeof options === 'object' ? options : {};
             const centerPriorityActive = safeOptions.centerPriorityActive === true;
             const centerPriorityHalfWidthIn = Math.max(0, toNumber(safeOptions.centerPriorityWidthIn, 0)) / 2;
 
             if (centerPriorityActive && centerPriorityHalfWidthIn > 0) {
                 const defaultCenterXIn = (Math.min(zoneStartIn, zoneEndIn) + Math.max(zoneStartIn, zoneEndIn)) / 2;
                 const centerLineXIn = toNumber(safeOptions.centerLineXIn, defaultCenterXIn);
-                const centerCandidates = candidates.filter(
+                const centerCandidates = viableCandidates.filter(
                     (weed) => Math.abs(weed.xIn - centerLineXIn) <= centerPriorityHalfWidthIn
                 );
                 const centerSelected = selectBottomMostFromCandidates(centerCandidates);
@@ -584,22 +593,22 @@
                 }
             }
 
-            return selectBottomMostFromCandidates(candidates);
+            return selectBottomMostFromCandidates(viableCandidates);
         }
 
         const safeMidlineYIn = clamp(toNumber(midlineYIn, SCAN_HEIGHT_IN / 2), 0, SCAN_HEIGHT_IN);
         const safeUrgentYIn = clamp(toNumber(urgentYIn, safeMidlineYIn + 0.1), 0, SCAN_HEIGHT_IN);
 
-        const urgentCandidates = candidates.filter((weed) => weed.yIn >= safeUrgentYIn);
+        const urgentCandidates = viableCandidates.filter((weed) => weed.yIn >= safeUrgentYIn);
         if (urgentCandidates.length > 0) {
             return selectBottomMostFromCandidates(urgentCandidates);
         }
 
-        let selected = candidates[0];
+        let selected = viableCandidates[0];
         let selectedDistance = Math.abs(selected.yIn - safeMidlineYIn);
 
-        for (let index = 1; index < candidates.length; index += 1) {
-            const weed = candidates[index];
+        for (let index = 1; index < viableCandidates.length; index += 1) {
+            const weed = viableCandidates[index];
             const distance = Math.abs(weed.yIn - safeMidlineYIn);
 
             if (
