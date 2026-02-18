@@ -111,10 +111,11 @@
                                 <button type="button" class="set-default-btn" data-default-key="targetingPolicy">Set Default</button>
                             </span>
                             <select id="targeting-policy-select">
-                                <option value="midline" selected>Midline + Urgent Fallback</option>
-                                <option value="bottom">Bottom-Most First</option>
+                                <option value="midline">Midline + Urgent Fallback</option>
+                                <option value="bottom" selected>Centerline + Bottom Fallback</option>
+                                <option value="bottom-only">Bottom-Most Only</option>
                             </select>
-                            <small>Midline keeps shot center stable while urgent targets still get priority.</small>
+                            <small>Centerline mode protects crop center under overload; bottom-only is pure nearest-exit.</small>
                         </label>
 
                         <label class="control" for="target-midline-slider">
@@ -376,7 +377,10 @@
                             <p>Shoot Time: <strong id="shoot-time-readout">0.00</strong> ms</p>
                             <p>Overhead Time: <strong id="overhead-readout">0.00</strong> ms</p>
                             <p>Time Per Target: <strong id="time-per-target-readout">0.00</strong> ms</p>
-                            <p>Targeting Policy: <strong id="targeting-policy-readout">midline</strong></p>
+                            <p>Targeting Policy: <strong id="targeting-policy-readout">bottom</strong></p>
+                            <p>Overload Ratio (Inflow/Capacity): <strong id="overload-ratio-readout">0.00</strong>x</p>
+                            <p>Centerline Priority Active: <strong id="center-priority-active-readout">No</strong></p>
+                            <p>Centerline Priority Window: <strong id="center-priority-width-readout">0.0</strong> in</p>
                             <p>Target Midline: <strong id="target-midline-readout">0.0</strong> in</p>
                             <p>Urgent Threshold: <strong id="target-urgent-readout">0.0</strong> in</p>
                             <p>Scanner A Range: <strong id="scanner-a-range-readout">0.0 - 0.0</strong> in</p>

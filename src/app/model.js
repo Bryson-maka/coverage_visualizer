@@ -64,7 +64,9 @@ export function createModelController({ core, dom, state, renderer, metrics, con
 
         const safeSpeedUtilizationPercent = core.clamp(input.speedUtilizationPercent, 50, 120);
         const speedUtilizationRatio = safeSpeedUtilizationPercent / 100;
-        const safeTargetingPolicy = input.targetingPolicy === 'bottom' ? 'bottom' : 'midline';
+        const safeTargetingPolicy = input.targetingPolicy === 'bottom' || input.targetingPolicy === 'bottom-only'
+            ? input.targetingPolicy
+            : 'midline';
         const safeTargetMidlineYIn = core.clamp(input.targetMidlineYIn, 0, core.SCAN_HEIGHT_IN);
         const safeTargetUrgentYIn = core.clamp(
             Math.max(input.targetUrgentYIn, safeTargetMidlineYIn + 0.1),
@@ -86,6 +88,18 @@ export function createModelController({ core, dom, state, renderer, metrics, con
             state.band.width,
             appliedSpeed.appliedSpeedMph
         );
+        const overloadRatio = capacityTargetsPerSecond > 0
+            ? inflowTargetsPerSecond / capacityTargetsPerSecond
+            : 0;
+        const centerPriorityWidthIn = core.computeCenterPriorityWidthIn(
+            state.band.width,
+            overloadRatio,
+            config.CENTER_PRIORITY_MIN_WIDTH_IN,
+            config.CENTER_PRIORITY_OVERLOAD_GAIN
+        );
+        const centerPriorityActive = safeTargetingPolicy === 'bottom' &&
+            overloadRatio > config.CENTER_PRIORITY_ACTIVATION_RATIO;
+        const bandCenterXIn = (state.band.start + state.band.end) / 2;
         const bandedLoad = core.computeBandedWeedLoadPerSqFt(input.densityPerSqFt, state.band.width);
         const coveragePlan = core.computeFieldCoveragePlan({
             speedMph: appliedSpeed.appliedSpeedMph,
@@ -112,6 +126,10 @@ export function createModelController({ core, dom, state, renderer, metrics, con
             coverageRatio: coverageMetrics.coverageRatio,
             coverageGapIn: coverageMetrics.gapWidthIn,
             hasCoverageGap: coverageMetrics.hasGap,
+            overloadRatio,
+            centerPriorityActive,
+            centerPriorityWidthIn,
+            bandCenterXIn,
             speedUtilizationPercent: safeSpeedUtilizationPercent,
             targetingPolicy: safeTargetingPolicy,
             targetMidlineYIn: safeTargetMidlineYIn,

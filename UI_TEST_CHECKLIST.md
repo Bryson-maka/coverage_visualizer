@@ -22,6 +22,7 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 - [ ] Overhead slider updates value label.
 - [ ] Size slider updates shoot-time readout (nonlinear).
 - [ ] Targeting policy switch updates `Model Details` policy readout.
+- [ ] Targeting policies include `Centerline + Bottom Fallback`, `Midline + Urgent Fallback`, and `Bottom-Most Only`.
 - [ ] Midline/Urgent sliders update labels and details readouts.
 
 ## Shoot-Time Profile Checks
@@ -71,6 +72,7 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 - [ ] Shot-line center remains near configured midline under moderate load.
 - [ ] Queue growth rate trends toward zero or negative when utilization target is reduced.
 - [ ] Scanner utilization values remain below `100%` with headroom enabled.
+- [ ] Under overloaded bottom-policy operation (`Speed Utilization > 100%` where load exceeds capacity), misses appear farther from band center than centerline targets.
 
 ## Coverage Data Tab
 
@@ -106,3 +108,12 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 4. `Zone Overlap`
    - Band `20`, Scanner A right `14`, Scanner B left `6`.
    - Expect overlap (no gap warning), higher service continuity.
+
+5. `Centerline Priority Under Overload`
+   - Targeting policy `Centerline + Bottom Fallback`, Band `24`, Speed Utilization `120%`.
+   - Use a dense/high-load setup (e.g. density `250`, size `20`, overhead `150`).
+   - Expect misses to concentrate near outer band edges while centerline targets are preferentially serviced.
+
+6. `Bottom-Only Reference`
+   - Switch targeting policy to `Bottom-Most Only` under the same load.
+   - Expect more centerline misses than centerline-priority mode.

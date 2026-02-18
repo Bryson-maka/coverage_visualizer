@@ -413,6 +413,21 @@
         };
     }
 
+    function computeCenterPriorityWidthIn(bandWidthIn, overloadRatio, minimumWidthIn, overloadGain) {
+        const safeBandWidthIn = Math.max(0, toNumber(bandWidthIn, 0));
+        if (safeBandWidthIn <= 0) {
+            return 0;
+        }
+
+        const safeMinimumWidthIn = clamp(toNumber(minimumWidthIn, 3), 0, safeBandWidthIn);
+        const safeOverloadRatio = Math.max(0, toNumber(overloadRatio, 1));
+        const safeOverloadGain = Math.max(0, toNumber(overloadGain, 0.5));
+        const overloadExcessRatio = Math.max(0, safeOverloadRatio - 1);
+        const widthFromOverload = safeMinimumWidthIn + (overloadExcessRatio * safeBandWidthIn * safeOverloadGain);
+
+        return clamp(widthFromOverload, safeMinimumWidthIn, safeBandWidthIn);
+    }
+
     function getBandRange(bandWidthIn) {
         const safeBandWidthIn = clamp(toNumber(bandWidthIn, SCAN_WIDTH_IN), 0, SCAN_WIDTH_IN);
         const center = SCAN_WIDTH_IN / 2;
@@ -541,14 +556,34 @@
         return selectBottomMostFromCandidates(candidates);
     }
 
-    function selectTargetByPolicy(weeds, zoneStartIn, zoneEndIn, policy, midlineYIn, urgentYIn) {
+    function selectTargetByPolicy(weeds, zoneStartIn, zoneEndIn, policy, midlineYIn, urgentYIn, options) {
         const candidates = collectTargetsInZone(weeds, zoneStartIn, zoneEndIn);
 
         if (candidates.length === 0) {
             return null;
         }
 
+        if (policy === 'bottom-only') {
+            return selectBottomMostFromCandidates(candidates);
+        }
+
         if (policy !== 'midline') {
+            const safeOptions = options && typeof options === 'object' ? options : {};
+            const centerPriorityActive = safeOptions.centerPriorityActive === true;
+            const centerPriorityHalfWidthIn = Math.max(0, toNumber(safeOptions.centerPriorityWidthIn, 0)) / 2;
+
+            if (centerPriorityActive && centerPriorityHalfWidthIn > 0) {
+                const defaultCenterXIn = (Math.min(zoneStartIn, zoneEndIn) + Math.max(zoneStartIn, zoneEndIn)) / 2;
+                const centerLineXIn = toNumber(safeOptions.centerLineXIn, defaultCenterXIn);
+                const centerCandidates = candidates.filter(
+                    (weed) => Math.abs(weed.xIn - centerLineXIn) <= centerPriorityHalfWidthIn
+                );
+                const centerSelected = selectBottomMostFromCandidates(centerCandidates);
+                if (centerSelected) {
+                    return centerSelected;
+                }
+            }
+
             return selectBottomMostFromCandidates(candidates);
         }
 
@@ -599,6 +634,7 @@
         computeTargetFlowTargetsPerSecond,
         computeCoverageRates,
         computeFieldCoveragePlan,
+        computeCenterPriorityWidthIn,
         getBandRange,
         normalizeScannerRanges,
         computeCoverageMetrics,

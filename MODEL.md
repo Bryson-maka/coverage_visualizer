@@ -106,10 +106,20 @@ Interpretation:
 
 Two targeting strategies are available:
 
-- `bottom`: scanner picks bottom-most unshot target in zone.
+- `bottom` (default): centerline + bottom fallback. Under overload, scanners prefer bottom-most targets near band center (crop line), then fall back to bottom-most across zone.
+- `bottom-only`: pure bottom-most selection across zone.
 - `midline`: scanner targets nearest to configured midline Y, but switches to bottom-most when targets exceed urgent threshold.
 
 The `midline` strategy keeps the shot line centered while still protecting near-exit targets.
+
+Overload-aware centerline protection for `bottom` policy:
+
+- The center of the active band is treated as crop-line priority.
+- When modeled load indicates overload (`inflow_targets_per_second > capacity_targets_per_second`), bottom policy first tries to service bottom-most targets inside a center window before falling back to the full zone.
+- Center window width uses:
+  - `center_priority_width_in = clamp(min_width + (overload_ratio - 1) * band_width * gain, min_width, band_width)`
+  - defaults: `min_width=3 in`, `gain=0.5`, activation threshold `overload_ratio > 1.02`.
+- This shifts expected misses outward (away from crop center) as overload increases.
 
 ## 8) Stability and limitations
 

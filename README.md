@@ -9,7 +9,8 @@ Live URL: `https://bryson-maka.github.io/coverage_visualizer/`
 - Simulation controls for weed density, weed size, band width, scanner bar ranges, overhead, and speed utilization.
 - Targeting strategies:
   - `Midline + Urgent Fallback`
-  - `Bottom-Most First`
+  - `Centerline + Bottom Fallback` (default)
+  - `Bottom-Most Only`
 - Runtime flow model:
   - Weeds move top-to-bottom in a 24" x 20" frame.
   - Dual scanners service targets within configured zones.

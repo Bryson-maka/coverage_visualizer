@@ -173,6 +173,12 @@ test('field coverage plan tracks partial circle pass paint width', () => {
     assert.ok(activePass.paintWidthFraction > 0 && activePass.paintWidthFraction < 1);
 });
 
+test('center priority width scales with overload and clamps to band width', () => {
+    near(core.computeCenterPriorityWidthIn(24, 1.0, 3, 0.5), 3, 1e-9);
+    near(core.computeCenterPriorityWidthIn(24, 1.2, 3, 0.5), 5.4, 1e-9);
+    near(core.computeCenterPriorityWidthIn(24, 3.0, 3, 0.5), 24, 1e-9);
+});
+
 test('scanner range normalization respects band bounds', () => {
     const zones = core.normalizeScannerRanges(4, 16, 30, -2);
 
@@ -234,13 +240,60 @@ test('midline policy falls back to bottom-most for urgent targets', () => {
     near(selected.yIn, 17.1, 1e-9);
 });
 
-test('bottom policy matches bottom-most behavior', () => {
+test('bottom-only policy matches bottom-most behavior', () => {
     const weeds = [
         { xIn: 8, yIn: 6.5, shot: false },
         { xIn: 8, yIn: 12.2, shot: false },
         { xIn: 8, yIn: 10.1, shot: false }
     ];
 
-    const selected = core.selectTargetByPolicy(weeds, 5, 10, 'bottom', 10, 16);
+    const selected = core.selectTargetByPolicy(weeds, 5, 10, 'bottom-only', 10, 16);
     near(selected.yIn, 12.2, 1e-9);
+});
+
+test('bottom policy prioritizes centerline candidates under overload pressure', () => {
+    const weeds = [
+        { xIn: 1.2, yIn: 17.5, shot: false },
+        { xIn: 12.3, yIn: 14.2, shot: false },
+        { xIn: 22.6, yIn: 18.1, shot: false }
+    ];
+
+    const selected = core.selectTargetByPolicy(
+        weeds,
+        0,
+        24,
+        'bottom',
+        10,
+        16,
+        {
+            centerPriorityActive: true,
+            centerPriorityWidthIn: 4,
+            centerLineXIn: 12
+        }
+    );
+
+    near(selected.xIn, 12.3, 1e-9);
+});
+
+test('bottom policy falls back to bottom-most when no centerline candidate exists', () => {
+    const weeds = [
+        { xIn: 1.2, yIn: 17.5, shot: false },
+        { xIn: 22.6, yIn: 18.1, shot: false }
+    ];
+
+    const selected = core.selectTargetByPolicy(
+        weeds,
+        0,
+        24,
+        'bottom',
+        10,
+        16,
+        {
+            centerPriorityActive: true,
+            centerPriorityWidthIn: 4,
+            centerLineXIn: 12
+        }
+    );
+
+    near(selected.yIn, 18.1, 1e-9);
 });

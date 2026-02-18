@@ -94,6 +94,9 @@ export function createMetricsPresenter({ dom, state, core }) {
         dom.overheadReadout.textContent = format(Number(dom.overheadSlider.value), 2);
         dom.timePerTargetReadout.textContent = format(state.model.timePerTargetMs, 2);
         dom.targetingPolicyReadout.textContent = state.model.targetingPolicy;
+        dom.overloadRatioReadout.textContent = format(state.model.overloadRatio, 2);
+        dom.centerPriorityActiveReadout.textContent = state.model.centerPriorityActive ? 'Yes' : 'No';
+        dom.centerPriorityWidthReadout.textContent = format(state.model.centerPriorityWidthIn, 1);
         dom.targetMidlineReadout.textContent = format(state.model.targetMidlineYIn, 1);
         dom.targetUrgentReadout.textContent = format(state.model.targetUrgentYIn, 1);
         dom.scannerARangeReadout.textContent = `${format(state.zones.scannerA.start, 1)} - ${format(state.zones.scannerA.end, 1)}`;

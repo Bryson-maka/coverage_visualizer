@@ -171,7 +171,12 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
                 zoneEndIn,
                 state.model.targetingPolicy,
                 state.model.targetMidlineYIn,
-                state.model.targetUrgentYIn
+                state.model.targetUrgentYIn,
+                {
+                    centerPriorityActive: state.model.centerPriorityActive,
+                    centerPriorityWidthIn: state.model.centerPriorityWidthIn,
+                    centerLineXIn: state.model.bandCenterXIn
+                }
             );
 
             if (!target) {
