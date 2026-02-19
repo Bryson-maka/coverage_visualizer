@@ -12,7 +12,6 @@ export function createModelController({ core, dom, state, renderer, metrics, con
             targetMidlineYIn: Number(dom.targetMidlineSlider.value),
             targetUrgentYIn: Number(dom.targetUrgentSlider.value),
             machineWidthFt: Number(dom.machineWidthInput.value),
-            machineLengthFt: Number(dom.machineLengthInput.value),
             fieldAreaAcres: Number(dom.fieldAreaInput.value),
             fieldShape: dom.fieldShapeSelect.value,
             efficiencyPercent: Number(dom.coverageEfficiencySlider.value),
@@ -104,7 +103,6 @@ export function createModelController({ core, dom, state, renderer, metrics, con
         const coveragePlan = core.computeFieldCoveragePlan({
             speedMph: appliedSpeed.appliedSpeedMph,
             machineWidthFt: input.machineWidthFt,
-            machineLengthFt: input.machineLengthFt,
             fieldAreaAcres: input.fieldAreaAcres,
             fieldShape: input.fieldShape,
             efficiencyPercent: input.efficiencyPercent,

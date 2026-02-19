@@ -25,17 +25,21 @@ Square-foot banded-load reference metric:
 
 Shoot time is not linear in size. The simulator uses anchored behavior:
 
-- size `1 -> 25 ms`
-- size `2 -> 30 ms`
-- size `3 -> 40 ms`
+- size `1 -> 20 ms`
+- size `2 -> 25 ms`
+- size `3 -> 30 ms`
+- size `4 -> 40 ms`
+- size `5 -> 50 ms`
 - size `20 -> 250 ms`
 
 Implementation:
 
-1. Size `1..2`: linear interpolation from 25 to 30 ms.
-2. Size `2..3`: linear interpolation from 30 to 40 ms.
-3. Size `3..20`: nonlinear tail
-   - `40 + (250 - 40) * ((size - 3) / 17)^1.2`
+1. Size `1..2`: linear interpolation from 20 to 25 ms.
+2. Size `2..3`: linear interpolation from 25 to 30 ms.
+3. Size `3..4`: linear interpolation from 30 to 40 ms.
+4. Size `4..5`: linear interpolation from 40 to 50 ms.
+5. Size `5..20`: nonlinear tail
+   - `50 + (250 - 50) * ((size - 5) / 15)^1.2`
 
 Why this design:
 
@@ -173,7 +177,6 @@ The Coverage Data tab is a planning view driven by the simulator's **applied spe
 Planner inputs:
 
 - Machine width (ft)
-- Machine length (ft) for context display
 - Field area (acres)
 - Field shape (`square` or `circle`)
 - Field efficiency (`80%` default, configurable)

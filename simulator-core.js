@@ -14,9 +14,11 @@
     const SHOOT_TIME_PROFILE = Object.freeze({
         minSize: 1,
         maxSize: 20,
-        minTimeMs: 25,
-        size2TimeMs: 30,
-        size3TimeMs: 40,
+        minTimeMs: 20,
+        size2TimeMs: 25,
+        size3TimeMs: 30,
+        size4TimeMs: 40,
+        size5TimeMs: 50,
         maxTimeMs: 250,
         // Tuned to keep early-mid sizes below linear while still hitting 250 ms at size 20.
         tailExponent: 1.2
@@ -84,10 +86,22 @@
                 SHOOT_TIME_PROFILE.size3TimeMs,
                 safeSize - 2
             );
+        } else if (safeSize <= 4) {
+            shootTimeMs = lerp(
+                SHOOT_TIME_PROFILE.size3TimeMs,
+                SHOOT_TIME_PROFILE.size4TimeMs,
+                safeSize - 3
+            );
+        } else if (safeSize <= 5) {
+            shootTimeMs = lerp(
+                SHOOT_TIME_PROFILE.size4TimeMs,
+                SHOOT_TIME_PROFILE.size5TimeMs,
+                safeSize - 4
+            );
         } else {
-            const normalizedTail = (safeSize - 3) / (SHOOT_TIME_PROFILE.maxSize - 3);
-            shootTimeMs = SHOOT_TIME_PROFILE.size3TimeMs +
-                (SHOOT_TIME_PROFILE.maxTimeMs - SHOOT_TIME_PROFILE.size3TimeMs) *
+            const normalizedTail = (safeSize - 5) / (SHOOT_TIME_PROFILE.maxSize - 5);
+            shootTimeMs = SHOOT_TIME_PROFILE.size5TimeMs +
+                (SHOOT_TIME_PROFILE.maxTimeMs - SHOOT_TIME_PROFILE.size5TimeMs) *
                 Math.pow(normalizedTail, SHOOT_TIME_PROFILE.tailExponent);
         }
 
@@ -307,7 +321,6 @@
         const safeShape = sanitizeFieldShape(config.fieldShape);
         const safeSpeedMph = Math.max(0, toNumber(config.speedMph, 0));
         const safeMachineWidthFt = Math.max(0, toNumber(config.machineWidthFt, 0));
-        const safeMachineLengthFt = Math.max(0, toNumber(config.machineLengthFt, 0));
         const safeFieldAreaAcres = Math.max(0, toNumber(config.fieldAreaAcres, 0));
         const safeEfficiencyPercent = clamp(toNumber(config.efficiencyPercent, 80), 0, 100);
         const safeSelectedHours = Math.max(0, toNumber(config.selectedHours, 1));
@@ -388,7 +401,6 @@
             fieldShape: safeShape,
             fieldShapeLabel: safeShape === 'circle' ? 'Circle' : 'Square',
             machineWidthFt: safeMachineWidthFt,
-            machineLengthFt: safeMachineLengthFt,
             fieldAreaAcres: safeFieldAreaAcres,
             fieldAreaSqFt,
             fieldWidthFt,

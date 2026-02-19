@@ -61,7 +61,6 @@ function bindEvents() {
 
     const coverageControls = [
         dom.machineWidthInput,
-        dom.machineLengthInput,
         dom.fieldAreaInput,
         dom.fieldShapeSelect,
         dom.coverageEfficiencySlider,

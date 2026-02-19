@@ -58,11 +58,6 @@ const FIELD_DEFAULTS = Object.freeze({
         kind: 'number',
         fallback: APP_CONFIG.DEFAULT_MACHINE_WIDTH_FT
     },
-    machineLengthFt: {
-        domKey: 'machineLengthInput',
-        kind: 'number',
-        fallback: APP_CONFIG.DEFAULT_MACHINE_LENGTH_FT
-    },
     fieldAreaAcres: {
         domKey: 'fieldAreaInput',
         kind: 'number',

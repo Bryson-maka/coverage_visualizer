@@ -3,7 +3,6 @@ export function createInitialState(core, config) {
     const initialCoverage = core.computeFieldCoveragePlan({
         speedMph: 0,
         machineWidthFt: config.DEFAULT_MACHINE_WIDTH_FT,
-        machineLengthFt: config.DEFAULT_MACHINE_LENGTH_FT,
         fieldAreaAcres: config.DEFAULT_FIELD_AREA_ACRES,
         fieldShape: config.DEFAULT_FIELD_SHAPE,
         efficiencyPercent: config.DEFAULT_FIELD_EFFICIENCY_PERCENT,

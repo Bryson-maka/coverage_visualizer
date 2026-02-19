@@ -19,7 +19,6 @@ export function getDomRefs() {
         targetMidlineSlider: requireElement('target-midline-slider'),
         targetUrgentSlider: requireElement('target-urgent-slider'),
         machineWidthInput: requireElement('machine-width-input'),
-        machineLengthInput: requireElement('machine-length-input'),
         fieldAreaInput: requireElement('field-area-input'),
         fieldShapeSelect: requireElement('field-shape-select'),
         coverageEfficiencySlider: requireElement('coverage-efficiency-slider'),
@@ -122,7 +121,7 @@ export function getDomRefs() {
         coveragePassesReadout: requireElement('coverage-passes-readout'),
         coverageActivePassReadout: requireElement('coverage-active-pass-readout'),
 
-        visualMachineSizeReadout: requireElement('visual-machine-size-readout'),
+        visualMachineWidthReadout: requireElement('visual-machine-width-readout'),
         visualFieldReadout: requireElement('visual-field-readout'),
         visualRateReadout: requireElement('visual-rate-readout'),
         visualCompletionReadout: requireElement('visual-completion-readout'),

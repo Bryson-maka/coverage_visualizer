@@ -26,7 +26,7 @@ Live URL: `https://bryson-maka.github.io/coverage_visualizer/`
   - Utilization headroom.
   - Applied speed cap at `3.0 mph`.
 - Coverage planner tab:
-  - Machine width/length, field size, field shape, efficiency, selected time.
+  - Machine width, field size, field shape, efficiency, selected time.
   - Coverage rate, time-to-complete, pass progress, and painted field view.
 - Persistent control defaults:
   - Each configurable field includes `Set Default`.

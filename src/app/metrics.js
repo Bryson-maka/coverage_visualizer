@@ -354,7 +354,7 @@ export function createMetricsPresenter({ dom, state, core }) {
         dom.coveragePassesReadout.textContent = `${coverage.completedPasses} / ${coverage.totalPasses}`;
         dom.coverageActivePassReadout.textContent = activePassLabel;
 
-        dom.visualMachineSizeReadout.textContent = `${format(coverage.machineWidthFt, 1)} x ${format(coverage.machineLengthFt, 1)}`;
+        dom.visualMachineWidthReadout.textContent = `${format(coverage.machineWidthFt, 1)}`;
         dom.visualFieldReadout.textContent = `${format(coverage.fieldAreaAcres, 1)} ac ${coverage.fieldShapeLabel}`;
         dom.visualRateReadout.textContent = format(coverage.coverageAcresPerHour, 2);
         dom.visualCompletionReadout.textContent = format(coverage.completionPercent, 1);

@@ -28,9 +28,11 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 
 ## Shoot-Time Profile Checks
 
-- [ ] Size `1` shows shoot time `25.00 ms`.
-- [ ] Size `2` shows shoot time `30.00 ms`.
-- [ ] Size `3` shows shoot time `40.00 ms`.
+- [ ] Size `1` shows shoot time `20.00 ms`.
+- [ ] Size `2` shows shoot time `25.00 ms`.
+- [ ] Size `3` shows shoot time `30.00 ms`.
+- [ ] Size `4` shows shoot time `40.00 ms`.
+- [ ] Size `5` shows shoot time `50.00 ms`.
 - [ ] Size `20` shows shoot time `250.00 ms`.
 
 ## Simulation Controls
@@ -87,7 +89,7 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 
 ## Coverage Data Tab
 
-- [ ] Coverage tab displays machine width/length, field size, field shape, efficiency, and selected paint time controls.
+- [ ] Coverage tab displays machine width, field size, field shape, efficiency, and selected paint time controls.
 - [ ] Default efficiency is `80%` and changing it updates coverage KPIs.
 - [ ] Coverage rate (`sq ft/hr`, `acres/hr`) rises when applied speed or machine width increases.
 - [ ] Time-to-full-coverage shows `N/A` when applied speed is zero.

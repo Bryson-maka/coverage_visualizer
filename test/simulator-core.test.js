@@ -29,9 +29,11 @@ test('banded weed load per sq ft clamps to full coverage above 12 inches', () =>
 });
 
 test('nonlinear shoot-time profile matches anchor points', () => {
-    assert.equal(core.computeShootTimeMs(1), 25);
-    assert.equal(core.computeShootTimeMs(2), 30);
-    assert.equal(core.computeShootTimeMs(3), 40);
+    assert.equal(core.computeShootTimeMs(1), 20);
+    assert.equal(core.computeShootTimeMs(2), 25);
+    assert.equal(core.computeShootTimeMs(3), 30);
+    assert.equal(core.computeShootTimeMs(4), 40);
+    assert.equal(core.computeShootTimeMs(5), 50);
     assert.equal(core.computeShootTimeMs(20), 250);
 });
 
@@ -119,7 +121,6 @@ test('field coverage plan computes rate, duration, and pass progress', () => {
     const plan = core.computeFieldCoveragePlan({
         speedMph: 3,
         machineWidthFt: 20,
-        machineLengthFt: 25,
         fieldAreaAcres: 40,
         fieldShape: 'square',
         efficiencyPercent: 80,
@@ -140,7 +141,6 @@ test('field coverage plan supports circle shape and zero speed', () => {
     const plan = core.computeFieldCoveragePlan({
         speedMph: 0,
         machineWidthFt: 18,
-        machineLengthFt: 24,
         fieldAreaAcres: 25,
         fieldShape: 'circle',
         efficiencyPercent: 80,
@@ -160,7 +160,6 @@ test('field coverage plan tracks partial circle pass paint width', () => {
     const plan = core.computeFieldCoveragePlan({
         speedMph: 3,
         machineWidthFt: 20,
-        machineLengthFt: 24,
         fieldAreaAcres: 25,
         fieldShape: 'circle',
         efficiencyPercent: 80,
