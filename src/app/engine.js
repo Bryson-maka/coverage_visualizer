@@ -11,16 +11,65 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
         return inScannerA || inScannerB;
     }
 
-    function createWeed(xIn, yIn) {
-        const size = Number(dom.sizeSlider.value);
-        const shotRequiredMs = core.computeShootTimeMs(size);
+    function getActiveCategories() {
+        const categories = Array.isArray(state.model.weedCategories) ? state.model.weedCategories : [];
+        if (categories.length > 0) {
+            return categories;
+        }
+
+        return [
+            {
+                id: 'weed-category-1',
+                name: 'Weed Category 1',
+                visualType: 'broadleaf',
+                densityPerSqFt: 0,
+                shootTimeMs: 20,
+                sharePercent: 0
+            }
+        ];
+    }
+
+    function ensureCategoryStatsEntry(category) {
+        const categoryId = String(category?.id ?? 'uncategorized');
+        if (!state.stats.categories[categoryId]) {
+            state.stats.categories[categoryId] = {
+                id: categoryId,
+                name: String(category?.name ?? 'Uncategorized'),
+                visualType: category?.visualType === 'grass' ? 'grass' : 'broadleaf',
+                spawned: 0,
+                shots: 0,
+                fullyShot: 0,
+                partial: 0,
+                missed: 0
+            };
+        }
+
+        return state.stats.categories[categoryId];
+    }
+
+    function resetCategoryStats() {
+        state.stats.categories = {};
+        for (const category of getActiveCategories()) {
+            ensureCategoryStatsEntry(category);
+        }
+    }
+
+    function createWeed(xIn, yIn, category) {
+        const safeCategory = category || {
+            id: 'weed-category-1',
+            name: 'Weed Category 1',
+            visualType: 'broadleaf',
+            shootTimeMs: 20
+        };
+        const shotRequiredMs = core.normalizeShootTimeInputMs(safeCategory.shootTimeMs);
 
         return {
             id: state.nextWeedId,
             xIn,
             yIn,
-            size,
-            type: Math.random() < 0.5 ? 'broadleaf' : 'grass',
+            type: safeCategory.visualType === 'grass' ? 'grass' : 'broadleaf',
+            categoryId: String(safeCategory.id),
+            categoryName: String(safeCategory.name),
             rotationDeg: Math.random() * 360,
             shot: false,
             shotComplete: false,
@@ -31,8 +80,8 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
         };
     }
 
-    function addWeedToState(xIn, yIn, options = {}) {
-        const weed = createWeed(xIn, yIn);
+    function addWeedToState(xIn, yIn, category, options = {}) {
+        const weed = createWeed(xIn, yIn, category);
         if (options.shot === true) {
             weed.shot = true;
             weed.shotComplete = true;
@@ -44,31 +93,38 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
         state.weeds.push(weed);
         state.nextWeedId += 1;
         state.stats.spawned += 1;
+        ensureCategoryStatsEntry({
+            id: weed.categoryId,
+            name: weed.categoryName,
+            visualType: weed.type
+        }).spawned += 1;
     }
 
     function seedWindowPopulation() {
-        const density = Math.max(0, Number(dom.densitySlider.value));
-        const expectedWindowCount = density * core.WINDOW_AREA_SQFT;
-        const wholeCount = Math.floor(expectedWindowCount);
-        const fractional = expectedWindowCount - wholeCount;
-        const seedCount = wholeCount + (Math.random() < fractional ? 1 : 0);
-
         const shootLineYIn = core.clamp(
             Number(dom.targetMidlineSlider.value),
             0,
             core.SCAN_HEIGHT_IN
         );
 
-        for (let i = 0; i < seedCount; i += 1) {
-            const yIn = Math.random() * core.SCAN_HEIGHT_IN;
-            const xIn = Math.random() * core.SCAN_WIDTH_IN;
-            const shouldSeedAsShot = yIn > shootLineYIn && isInScannerCoverageX(xIn);
+        for (const category of getActiveCategories()) {
+            const expectedWindowCount = Math.max(0, Number(category.densityPerSqFt)) * core.WINDOW_AREA_SQFT;
+            const wholeCount = Math.floor(expectedWindowCount);
+            const fractional = expectedWindowCount - wholeCount;
+            const seedCount = wholeCount + (Math.random() < fractional ? 1 : 0);
 
-            addWeedToState(
-                xIn,
-                yIn,
-                { shot: shouldSeedAsShot }
-            );
+            for (let index = 0; index < seedCount; index += 1) {
+                const yIn = Math.random() * core.SCAN_HEIGHT_IN;
+                const xIn = Math.random() * core.SCAN_WIDTH_IN;
+                const shouldSeedAsShot = yIn > shootLineYIn && isInScannerCoverageX(xIn);
+
+                addWeedToState(
+                    xIn,
+                    yIn,
+                    category,
+                    { shot: shouldSeedAsShot }
+                );
+            }
         }
     }
 
@@ -113,12 +169,21 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
 
     function getCurrentSettingsSnapshot() {
         return {
-            densityPerSqFt: Number(dom.densitySlider.value),
-            weedSize: Number(dom.sizeSlider.value),
+            densityPerSqFt: Number(state.model.totalDensityPerSqFt),
+            weightedShootTimeMs: Number(state.model.shootTimeMs),
             bandWidthIn: Number(dom.bandWidthSlider.value),
             speedUtilizationPercent: Number(dom.speedUtilizationSlider.value),
             targetingPolicy: dom.targetingPolicySelect.value,
-            appliedSpeedMph: Number(state.model.appliedSpeedMph)
+            appliedSpeedMph: Number(state.model.appliedSpeedMph),
+            categoryCount: state.model.weedCategories?.length ?? 0,
+            categories: (state.model.weedCategories || []).map((category) => ({
+                id: category.id,
+                name: category.name,
+                visualType: category.visualType,
+                densityPerSqFt: category.densityPerSqFt,
+                sharePercent: category.sharePercent,
+                shootTimeMs: category.shootTimeMs
+            }))
         };
     }
 
@@ -219,7 +284,9 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
         state.recording.events.push({
             xIn: core.clamp(weed.xIn, 0, core.SCAN_WIDTH_IN),
             timeMs: Math.max(0, state.stats.elapsedMs - state.recording.startedElapsedMs),
-            result
+            result,
+            categoryId: weed.categoryId,
+            categoryName: weed.categoryName
         });
     }
 
@@ -228,7 +295,7 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
             cancelRecording();
         }
 
-        state.spawnCarry = 0;
+        state.spawnCarry = {};
         state.nextWeedId = 1;
         state.weeds = [];
         state.stats.spawned = 0;
@@ -243,6 +310,7 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
         state.stats.shotExitMarginMeanSec = 0;
         state.stats.queueGrowthEwmaPerSec = 0;
         state.stats.lastActiveTargets = 0;
+        resetCategoryStats();
 
         state.scanners.forEach((scanner) => {
             scanner.cooldownMs = 0;
@@ -261,20 +329,24 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
             return;
         }
 
-        const density = Number(dom.densitySlider.value);
         const enteringAreaSqFt = (core.SCAN_WIDTH_IN * distanceIn) / 144;
-        const expectedCount = density * enteringAreaSqFt;
 
-        state.spawnCarry += expectedCount;
+        for (const category of getActiveCategories()) {
+            const categoryId = String(category.id);
+            const expectedCount = Math.max(0, Number(category.densityPerSqFt)) * enteringAreaSqFt;
+            const carry = state.spawnCarry[categoryId] ?? 0;
+            const totalForStep = carry + expectedCount;
+            const spawnCount = Math.floor(totalForStep);
 
-        const spawnCount = Math.floor(state.spawnCarry);
-        state.spawnCarry -= spawnCount;
+            state.spawnCarry[categoryId] = totalForStep - spawnCount;
 
-        for (let i = 0; i < spawnCount; i += 1) {
-            addWeedToState(
-                Math.random() * core.SCAN_WIDTH_IN,
-                -Math.random() * 0.5
-            );
+            for (let index = 0; index < spawnCount; index += 1) {
+                addWeedToState(
+                    Math.random() * core.SCAN_WIDTH_IN,
+                    -Math.random() * 0.5,
+                    category
+                );
+            }
         }
     }
 
@@ -323,7 +395,6 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
             scanner.cooldownMs <= 0 &&
             shotsThisStep < config.MAX_SHOTS_PER_STEP_PER_SCANNER
         ) {
-            const minimumExitMarginIn = state.model.appliedInchesPerSecond * (state.model.shootTimeMs / 1000);
             const target = core.selectTargetByPolicy(
                 state.weeds,
                 zoneStartIn,
@@ -335,7 +406,12 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
                     centerPriorityActive: state.model.centerPriorityActive,
                     centerPriorityWidthIn: state.model.centerPriorityWidthIn,
                     centerLineXIn: state.model.bandCenterXIn,
-                    minimumExitMarginIn
+                    minimumExitMarginInForWeed: (weed) => {
+                        const shootTimeMs = core.normalizeShootTimeInputMs(
+                            Number(weed?.shotRequiredMs ?? state.model.shootTimeMs)
+                        );
+                        return state.model.appliedInchesPerSecond * (shootTimeMs / 1000);
+                    }
                 }
             );
 
@@ -347,11 +423,18 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
             target.shot = true;
             target.shotComplete = false;
             target.doseAppliedMs = 0;
-            target.shotRequiredMs = core.computeShootTimeMs(target.size);
+            target.shotRequiredMs = core.normalizeShootTimeInputMs(
+                Number(target.shotRequiredMs ?? state.model.shootTimeMs)
+            );
             target.shotAgeMs = 0;
 
             state.stats.shots += 1;
             scanner.shots += 1;
+            ensureCategoryStatsEntry({
+                id: target.categoryId,
+                name: target.categoryName,
+                visualType: target.type
+            }).shots += 1;
             trackShotObservability(target.yIn);
 
             scanner.cooldownMs += state.model.timePerTargetMs;
@@ -383,14 +466,22 @@ export function createSimulationEngine({ core, dom, state, renderer, metrics, co
         for (const weed of state.weeds) {
             if (weed.yIn > core.SCAN_HEIGHT_IN) {
                 if (isInTargetBand(weed) && !weed.preResolved) {
+                    const categoryStats = ensureCategoryStatsEntry({
+                        id: weed.categoryId,
+                        name: weed.categoryName,
+                        visualType: weed.type
+                    });
                     if (!weed.shot) {
                         state.stats.missed += 1;
+                        categoryStats.missed += 1;
                         recordExitEvent(weed, 'missed');
                     } else if (weed.shotComplete) {
                         state.stats.fullyShot += 1;
+                        categoryStats.fullyShot += 1;
                         recordExitEvent(weed, 'shot');
                     } else {
                         state.stats.partial += 1;
+                        categoryStats.partial += 1;
                         recordExitEvent(weed, 'partial');
                     }
                 }

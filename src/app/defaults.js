@@ -1,18 +1,8 @@
 import { APP_CONFIG } from './config.js';
 
-const STORAGE_KEY = 'laserweeder.defaults.v1';
+const STORAGE_KEY = 'laserweeder.defaults.v2';
 
 const FIELD_DEFAULTS = Object.freeze({
-    densityPerSqFt: {
-        domKey: 'densitySlider',
-        kind: 'number',
-        fallback: APP_CONFIG.DEFAULT_DENSITY_PER_SQFT
-    },
-    weedSize: {
-        domKey: 'sizeSlider',
-        kind: 'number',
-        fallback: APP_CONFIG.DEFAULT_WEED_SIZE
-    },
     bandWidthIn: {
         domKey: 'bandWidthSlider',
         kind: 'number',
@@ -97,12 +87,38 @@ function safeParseStoredDefaults(rawValue) {
     return {};
 }
 
-function loadStoredDefaults() {
-    return safeParseStoredDefaults(window.localStorage.getItem(STORAGE_KEY));
+function safeLocalStorageRead(key) {
+    try {
+        return window.localStorage.getItem(key);
+    } catch (error) {
+        return null;
+    }
+}
+
+function safeLocalStorageWrite(key, value) {
+    try {
+        window.localStorage.setItem(key, value);
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+function safeLocalStorageRemove(key) {
+    try {
+        window.localStorage.removeItem(key);
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+export function readStoredDefaults() {
+    return safeParseStoredDefaults(safeLocalStorageRead(STORAGE_KEY));
 }
 
 function saveStoredDefaults(payload) {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    safeLocalStorageWrite(STORAGE_KEY, JSON.stringify(payload));
 }
 
 function toNumber(value, fallback) {
@@ -165,8 +181,10 @@ function withSavedBadge(button, message) {
     }, 1200);
 }
 
-export function applyDefaultsToDom(dom) {
-    const storedDefaults = loadStoredDefaults();
+function applyDefaultsToDomWithPayload(dom, defaultsPayload) {
+    const storedDefaults = defaultsPayload && typeof defaultsPayload === 'object'
+        ? defaultsPayload
+        : {};
 
     Object.entries(FIELD_DEFAULTS).forEach(([key, definition]) => {
         const element = dom[definition.domKey];
@@ -179,7 +197,33 @@ export function applyDefaultsToDom(dom) {
     });
 }
 
-export function bindDefaultControls({ dom, onDefaultsChanged }) {
+export function applyDefaultsToDom(dom, defaultsPayload = null) {
+    if (defaultsPayload && typeof defaultsPayload === 'object') {
+        applyDefaultsToDomWithPayload(dom, defaultsPayload);
+        return;
+    }
+
+    applyDefaultsToDomWithPayload(dom, readStoredDefaults());
+}
+
+function getDynamicDefaultsValue(dynamicValues, key) {
+    if (!dynamicValues || typeof dynamicValues !== 'object') {
+        return { found: false, value: null };
+    }
+
+    if (!Object.prototype.hasOwnProperty.call(dynamicValues, key)) {
+        return { found: false, value: null };
+    }
+
+    return { found: true, value: dynamicValues[key] };
+}
+
+export function bindDefaultControls({
+    dom,
+    onDefaultsChanged,
+    getDynamicDefaultValues,
+    applyDynamicDefaults
+}) {
     const buttons = Array.from(document.querySelectorAll('[data-default-key]'));
 
     buttons.forEach((button) => {
@@ -190,22 +234,35 @@ export function bindDefaultControls({ dom, onDefaultsChanged }) {
             const key = button.getAttribute('data-default-key');
             const definition = FIELD_DEFAULTS[key];
 
-            if (!definition) {
+            const storedDefaults = readStoredDefaults();
+            if (definition) {
+                const element = dom[definition.domKey];
+                storedDefaults[key] = readInputValue(definition, element);
+                saveStoredDefaults(storedDefaults);
+                withSavedBadge(button, 'Saved');
                 return;
             }
 
-            const element = dom[definition.domKey];
-            const storedDefaults = loadStoredDefaults();
-            storedDefaults[key] = readInputValue(definition, element);
-            saveStoredDefaults(storedDefaults);
+            const dynamicValues = typeof getDynamicDefaultValues === 'function'
+                ? getDynamicDefaultValues()
+                : {};
+            const dynamicValue = getDynamicDefaultsValue(dynamicValues, key);
+            if (!dynamicValue.found) {
+                return;
+            }
 
+            storedDefaults[key] = dynamicValue.value;
+            saveStoredDefaults(storedDefaults);
             withSavedBadge(button, 'Saved');
         });
     });
 
     dom.resetDefaultsButton.addEventListener('click', () => {
-        window.localStorage.removeItem(STORAGE_KEY);
-        applyDefaultsToDom(dom);
+        safeLocalStorageRemove(STORAGE_KEY);
+        applyDefaultsToDomWithPayload(dom, {});
+        if (typeof applyDynamicDefaults === 'function') {
+            applyDynamicDefaults({});
+        }
         withSavedBadge(dom.resetDefaultsButton, 'Defaults Reset');
         onDefaultsChanged();
     });

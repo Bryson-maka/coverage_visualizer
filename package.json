@@ -2,7 +2,7 @@
   "name": "laserweeder-module-simulator",
   "version": "1.0.0",
   "private": true,
-  "description": "20x20 laserweeder dual-scanner simulator",
+  "description": "24x20 laserweeder dual-scanner simulator with category mix modeling",
   "scripts": {
     "ci": "npm run check && npm test",
     "test": "node --test",

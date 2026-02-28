@@ -8,7 +8,7 @@ This document defines the math and assumptions behind the laserweeder simulator.
 - Window area in square feet:
   - `window_area_sqft = (24 * 20) / 144 = 3.333...`
 - Density conversion:
-  - `window_weeds = density_weeds_per_sqft * window_area_sqft`
+  - `window_weeds = total_density_weeds_per_sqft * window_area_sqft`
 
 Examples:
 
@@ -21,31 +21,27 @@ Square-foot banded-load reference metric:
 - `banded_weeds_per_sqft = density * clamp(band_width / 12, 0, 1)`
 - Example: `density=100`, `band=6 in` -> `50 banded weeds/sq ft` (`50%`).
 
-## 2) Shoot-time model from weed size
+## 2) Shoot-time model from weed categories
 
-Shoot time is not linear in size. The simulator uses anchored behavior:
+The simulator now uses a dynamic category mix instead of a single global weed-size input.
 
-- size `1 -> 20 ms`
-- size `2 -> 25 ms`
-- size `3 -> 30 ms`
-- size `4 -> 40 ms`
-- size `5 -> 50 ms`
-- size `20 -> 250 ms`
+Per category:
 
-Implementation:
+- `name` (user-defined)
+- `visual_type` (`broadleaf` or `grass`)
+- `density_per_sqft` (`0..150`)
+- `shoot_time_ms` with stepped control:
+  - `10 ms` increments from `10..500`
+  - `100 ms` increments from `500..3000`
 
-1. Size `1..2`: linear interpolation from 20 to 25 ms.
-2. Size `2..3`: linear interpolation from 25 to 30 ms.
-3. Size `3..4`: linear interpolation from 30 to 40 ms.
-4. Size `4..5`: linear interpolation from 40 to 50 ms.
-5. Size `5..20`: nonlinear tail
-   - `50 + (250 - 50) * ((size - 5) / 15)^1.2`
+Total modeled density:
 
-Why this design:
+- `total_density_per_sqft = sum(category_density_per_sqft)`
 
-- It matches the stated anchor points exactly.
-- It stays monotonic and stable.
-- It avoids overfitting to unknown calibration data while preserving nonlinearity.
+Weighted modeled shoot time used by throughput math:
+
+- `weighted_shoot_time_ms = sum(category_density * category_shoot_time_ms) / total_density`
+- Fallback when `total_density = 0`: `20 ms` (throughput still resolves to zero inflow).
 
 ## 3) Time per target and scanner capacity
 
@@ -61,7 +57,7 @@ With two scanners:
 Raw speed is the throughput-limited speed needed to keep up with target demand in the selected band.
 
 - Demand per inch of travel:
-  - `targets_per_inch = density * band_width / 144`
+  - `targets_per_inch = total_density * band_width / 144`
 - Raw inches/sec:
   - `raw_ips = capacity_targets_per_second / targets_per_inch`
 - Raw mph:
@@ -78,7 +74,7 @@ Displayed/animated speed applies utilization scaling then cap:
 
 - `applied_ips = applied_mph * 63360 / 3600`
 - Target inflow:
-  - `inflow_targets_per_second = density * band_width * applied_ips / 144`
+  - `inflow_targets_per_second = total_density * band_width * applied_ips / 144`
 - Weeds move top-to-bottom by:
   - `distance_in = applied_ips * delta_seconds`
 
@@ -158,14 +154,15 @@ Current limitations (known and intentional):
 
 Visual weed size uses physical-inch mapping inside the 24" x 20" window:
 
-- `size 1` leaf length is anchored at `1/16"` (`0.0625 in`).
-- `size 20` leaf length is anchored at `1.25"`.
-- Intermediate values follow the normalized shoot-time curve, so visuals and timing move together.
+- `20 ms` maps to minimum leaf length `1/16"` (`0.0625 in`).
+- `3000 ms` maps to maximum leaf length `1.25"` (same visual max as legacy size `20`).
+- Intermediate values are linear in shoot time over `20..3000 ms`.
 
 Leaf-count relation:
 
-- Broadleaf: `min(floor(size / 2) + 1, 5)`
-- Grass: `min(floor(size / 4) + 1, 3)`
+- A derived visual-size value (`1..20`) is computed from shoot time and used for leaf count.
+- Broadleaf: `min(floor(visual_size / 2) + 1, 5)`
+- Grass: `min(floor(visual_size / 4) + 1, 3)`
 
 For UI readability, rendered plants are shown with a fixed `2x` visual magnification multiplier after physical sizing.
 This keeps relative size semantics consistent while improving visibility.
@@ -222,5 +219,5 @@ Runtime observability metrics:
   - `partial` (dose incomplete at frame exit)
   - `missed` (never targeted)
 - Each snapshot stores settings context:
-  - density, weed size, band width, speed utilization, targeting policy, applied speed.
+  - total density, weighted shoot time, band width, speed utilization, targeting policy, applied speed, and category mix.
 - History keeps recent snapshots in a scrollable list for side-by-side tuning review.

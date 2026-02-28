@@ -6,14 +6,22 @@ import { createRenderer } from './app/render.js';
 import { createMetricsPresenter } from './app/metrics.js';
 import { createModelController } from './app/model.js';
 import { createSimulationEngine } from './app/engine.js';
-import { applyDefaultsToDom, bindDefaultControls } from './app/defaults.js';
+import { createCategoryController } from './app/categories.js';
+import { applyDefaultsToDom, bindDefaultControls, readStoredDefaults } from './app/defaults.js';
 
 const dom = getDomRefs();
-applyDefaultsToDom(dom);
+const storedDefaults = readStoredDefaults();
+applyDefaultsToDom(dom, storedDefaults);
+const categories = createCategoryController({
+    core,
+    dom,
+    config: APP_CONFIG,
+    initialCategories: storedDefaults.weedCategories
+});
 const state = createInitialState(core, APP_CONFIG);
 const renderer = createRenderer({ dom, state, core, config: APP_CONFIG });
 const metrics = createMetricsPresenter({ dom, state, core });
-const model = createModelController({ core, dom, state, renderer, metrics, config: APP_CONFIG });
+const model = createModelController({ core, dom, state, renderer, metrics, config: APP_CONFIG, categories });
 const engine = createSimulationEngine({ core, dom, state, renderer, metrics, config: APP_CONFIG });
 
 function setMetricsTab(activeTab) {
@@ -34,13 +42,11 @@ function setMetricsTab(activeTab) {
 function bindEvents() {
     const resetAndRecomputeSimulation = () => {
         engine.setRunning(false);
-        engine.resetSimulationState();
         model.recomputeModel();
+        engine.resetSimulationState();
     };
 
     const simulationControls = [
-        dom.densitySlider,
-        dom.sizeSlider,
         dom.bandWidthSlider,
         dom.scannerAEndSlider,
         dom.scannerBStartSlider,
@@ -58,6 +64,8 @@ function bindEvents() {
             control.addEventListener('input', resetAndRecomputeSimulation);
         }
     });
+
+    categories.setOnChange(resetAndRecomputeSimulation);
 
     const coverageControls = [
         dom.machineWidthInput,
@@ -132,7 +140,13 @@ function bindEvents() {
 
     bindDefaultControls({
         dom,
-        onDefaultsChanged: resetAndRecomputeSimulation
+        onDefaultsChanged: resetAndRecomputeSimulation,
+        getDynamicDefaultValues: () => ({
+            weedCategories: categories.getDefaultsPayload()
+        }),
+        applyDynamicDefaults: (defaultsPayload) => {
+            categories.applyDefaults(defaultsPayload.weedCategories);
+        }
     });
 }
 

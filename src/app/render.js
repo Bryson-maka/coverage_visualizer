@@ -102,7 +102,7 @@ export function createRenderer({ dom, state, core, config }) {
                 continue;
             }
 
-            const visual = core.computeWeedVisualProfile(weed.size, weed.type);
+            const visual = core.computeWeedVisualProfileFromShootTimeMs(weed.shotRequiredMs, weed.type);
             const leafLengthPx = visual.leafLengthIn * plantPxPerIn * config.PLANT_VISUAL_MAGNIFICATION;
 
             const group = createSvgElement('g');

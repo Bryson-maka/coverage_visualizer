@@ -149,6 +149,68 @@ select {
     color: var(--muted);
 }
 
+.weed-category-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.45rem;
+}
+
+.weed-category-summary {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #2d3a40;
+}
+
+.weed-category-note {
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+.weed-category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.weed-category-card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.55rem;
+    background: #fdfefe;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.weed-category-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.45rem;
+}
+
+.weed-category-name-control {
+    flex: 1;
+}
+
+.weed-category-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+}
+
+.weed-category-remove-btn {
+    min-width: 74px;
+    margin-top: 1.15rem;
+}
+
+.weed-category-share {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #2f4250;
+}
+
 .btn {
     border: 1px solid var(--line);
     background: #f7f8f9;
@@ -581,6 +643,53 @@ select {
     background: #fafcfb;
 }
 
+.category-metrics-block {
+    margin-top: 0.35rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fafcfd;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.category-metrics-title {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #1f3a45;
+}
+
+.category-metrics-scroll {
+    overflow-x: auto;
+}
+
+.category-metrics-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 560px;
+    font-size: 0.74rem;
+}
+
+.category-metrics-table th,
+.category-metrics-table td {
+    border-bottom: 1px solid #d8e0e5;
+    padding: 0.22rem 0.3rem;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.category-metrics-table th {
+    color: #49606f;
+    font-weight: 700;
+}
+
+.category-metrics-empty {
+    color: var(--muted);
+    font-style: italic;
+}
+
 .snapshot-toolbar {
     display: flex;
     align-items: center;
@@ -893,6 +1002,25 @@ select {
     .coverage-settings-grid,
     .coverage-visual-cards {
         grid-template-columns: 1fr;
+    }
+
+    .weed-category-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .weed-category-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .weed-category-toolbar .btn,
+    .weed-category-toolbar .set-default-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .weed-category-remove-btn {
+        margin-top: 0.2rem;
     }
 
     .snapshot-toolbar {

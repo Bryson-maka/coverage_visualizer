@@ -15,25 +15,25 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 
 ## Control Ranges
 
-- [ ] Density slider min/max is `1..250`.
+- [ ] Per-category density slider min/max is `0..150`.
 - [ ] Band width slider min/max is `1..24` inches.
 - [ ] Speed Utilization slider min/max is `50..120%`.
 - [ ] Scanner bar sliders keep user-set positions when band width changes.
 - [ ] Effective scanner ranges in `Model Details` reflect clipping to active band where needed.
 - [ ] Overhead slider updates value label.
-- [ ] Size slider updates shoot-time readout (nonlinear).
+- [ ] Per-category shoot-time slider supports `10 ms` steps from `10..500`.
+- [ ] Per-category shoot-time slider supports `100 ms` steps from `500..3000`.
+- [ ] Adding/removing categories updates per-category density share percentages.
 - [ ] Targeting policy switch updates `Model Details` policy readout.
 - [ ] Targeting policies include `Centerline + Bottom Fallback`, `Midline + Urgent Fallback`, and `Bottom-Most Only`.
 - [ ] Midline/Urgent sliders update labels and details readouts.
 
-## Shoot-Time Profile Checks
+## Shoot-Time + Mix Checks
 
-- [ ] Size `1` shows shoot time `20.00 ms`.
-- [ ] Size `2` shows shoot time `25.00 ms`.
-- [ ] Size `3` shows shoot time `30.00 ms`.
-- [ ] Size `4` shows shoot time `40.00 ms`.
-- [ ] Size `5` shows shoot time `50.00 ms`.
-- [ ] Size `20` shows shoot time `250.00 ms`.
+- [ ] Weighted shoot time in `Model Details` changes as category densities and shoot times change.
+- [ ] A category at `20 ms` renders at minimum visual size.
+- [ ] A category at `3000 ms` renders at maximum visual size (legacy size-20 equivalent).
+- [ ] Increasing a category's density increases its mix share and influence on weighted shoot time.
 
 ## Simulation Controls
 
@@ -64,9 +64,9 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 
 - [ ] Targets move top-to-bottom while running.
 - [ ] Targets render as weed glyphs (not dots).
-- [ ] Larger sizes visibly increase weed glyph scale.
+- [ ] Larger shoot times visibly increase weed glyph scale.
 - [ ] Shot targets flash red before fading.
-- [ ] Using the 1-inch grid, size `1` leaves appear very small but readable (physical size with 2x display magnification).
+- [ ] Using the 1-inch grid, `20 ms` leaves appear very small but readable (physical size with 2x display magnification).
 
 ## Throughput Metrics
 
@@ -85,7 +85,7 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 - [ ] Recorder auto-stops after 30 seconds of simulation runtime.
 - [ ] Snapshot cards appear in the scrollable history list.
 - [ ] Snapshot card counts include `Shot`, `Partial`, and `Missed`.
-- [ ] Snapshot cards include settings context (density, size, band, utilization, policy, speed).
+- [ ] Snapshot cards include settings context (density, weighted shoot time, mix, band, utilization, policy, speed).
 
 ## Coverage Data Tab
 
@@ -107,11 +107,11 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 ## Suggested QA Scenarios
 
 1. `Low Load`
-   - Density `10`, band `10`, size `6`, overhead `40`.
+   - One category at density `10`, shoot time `80 ms`, band `10`, overhead `40`.
    - Expect high hit rate and often capped speed.
 
 2. `High Load`
-   - Density `250`, band `20`, size `20`, overhead `150`.
+   - Two categories totaling density `250`, weighted shoot time `>= 1000 ms`, band `20`, overhead `150`.
    - Expect lower speed, rising misses, lower hit rate.
 
 3. `Zone Gap`
@@ -124,7 +124,7 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 
 5. `Centerline Priority Under Overload`
    - Targeting policy `Centerline + Bottom Fallback`, Band `24`, Speed Utilization `120%`.
-   - Use a dense/high-load setup (e.g. density `250`, size `20`, overhead `150`).
+   - Use a dense/high-load setup (e.g. total density `250`, weighted shoot time `>= 1000 ms`, overhead `150`).
    - Expect misses to concentrate near outer band edges while centerline targets are preferentially serviced.
 
 6. `Bottom-Only Reference`

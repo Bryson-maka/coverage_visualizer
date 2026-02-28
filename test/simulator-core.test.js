@@ -314,3 +314,59 @@ test('selection skips targets that cannot get full dose before exit', () => {
 
     assert.equal(selected, null);
 });
+
+test('shoot time input snaps to required step bands', () => {
+    assert.equal(core.normalizeShootTimeInputMs(9), 10);
+    assert.equal(core.normalizeShootTimeInputMs(24), 20);
+    assert.equal(core.normalizeShootTimeInputMs(499), 500);
+    assert.equal(core.normalizeShootTimeInputMs(550), 600);
+    assert.equal(core.normalizeShootTimeInputMs(2891), 2900);
+    assert.equal(core.normalizeShootTimeInputMs(3200), 3000);
+});
+
+test('shoot time input options cover fine and coarse bands', () => {
+    const options = core.getShootTimeInputOptionsMs();
+    assert.equal(options[0], 10);
+    assert.equal(options[49], 500);
+    assert.equal(options[50], 600);
+    assert.equal(options[options.length - 1], 3000);
+});
+
+test('category mix computes total density, weighted shoot time, and share', () => {
+    const mix = core.computeCategoryMix([
+        { id: 'a', name: 'A', visualType: 'broadleaf', densityPerSqFt: 30, shootTimeMs: 100 },
+        { id: 'b', name: 'B', visualType: 'grass', densityPerSqFt: 70, shootTimeMs: 300 }
+    ], 150);
+
+    near(mix.totalDensityPerSqFt, 100, 1e-9);
+    near(mix.weightedShootTimeMs, 240, 1e-9);
+    near(mix.categories[0].sharePercent, 30, 1e-9);
+    near(mix.categories[1].sharePercent, 70, 1e-9);
+});
+
+test('shoot-time visual mapping anchors at 20 ms min and 3000 ms max', () => {
+    near(core.computeLeafLengthInFromShootTimeMs(20), core.WEED_VISUAL_PROFILE.minLeafLengthIn, 1e-12);
+    near(core.computeLeafLengthInFromShootTimeMs(3000), core.WEED_VISUAL_PROFILE.maxLeafLengthIn, 1e-12);
+    near(core.computeLeafLengthInFromShootTimeMs(10), core.WEED_VISUAL_PROFILE.minLeafLengthIn, 1e-12);
+});
+
+test('per-weed exit margin function is honored by target selection', () => {
+    const weeds = [
+        { xIn: 8, yIn: 19.4, shot: false, shotRequiredMs: 100 },
+        { xIn: 8, yIn: 19.4, shot: false, shotRequiredMs: 900 }
+    ];
+
+    const selected = core.selectTargetByPolicy(
+        weeds,
+        5,
+        10,
+        'bottom-only',
+        10,
+        16,
+        {
+            minimumExitMarginInForWeed: (weed) => weed.shotRequiredMs <= 100 ? 0.5 : 1
+        }
+    );
+
+    assert.equal(selected.shotRequiredMs, 100);
+});

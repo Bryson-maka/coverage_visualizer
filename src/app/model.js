@@ -1,8 +1,6 @@
-export function createModelController({ core, dom, state, renderer, metrics, config }) {
+export function createModelController({ core, dom, state, renderer, metrics, config, categories }) {
     function getInputConfig() {
         return {
-            densityPerSqFt: Number(dom.densitySlider.value),
-            size: Number(dom.sizeSlider.value),
             bandWidthIn: Number(dom.bandWidthSlider.value),
             scannerARightIn: Number(dom.scannerAEndSlider.value),
             scannerBLeftIn: Number(dom.scannerBStartSlider.value),
@@ -15,16 +13,15 @@ export function createModelController({ core, dom, state, renderer, metrics, con
             fieldAreaAcres: Number(dom.fieldAreaInput.value),
             fieldShape: dom.fieldShapeSelect.value,
             efficiencyPercent: Number(dom.coverageEfficiencySlider.value),
-            selectedCoverageHours: Number(dom.coverageHoursSlider.value)
+            selectedCoverageHours: Number(dom.coverageHoursSlider.value),
+            weedCategories: categories.getCategories()
         };
     }
 
-    function syncControlReadouts(input, shootTimeMs) {
-        const weedsInWindow = core.weedsInWindow(input.densityPerSqFt);
+    function syncControlReadouts(input, totalDensityPerSqFt) {
+        const weedsInWindow = core.weedsInWindow(totalDensityPerSqFt);
 
-        dom.densityValue.textContent = metrics.format(input.densityPerSqFt, 0);
-        dom.sizeValue.textContent = metrics.format(input.size, 0);
-        dom.shootTimeValue.textContent = metrics.format(shootTimeMs, 2);
+        dom.totalDensityValue.textContent = metrics.format(totalDensityPerSqFt, 0);
         dom.bandWidthValue.textContent = metrics.format(input.bandWidthIn, 1);
         dom.scannerAEndValue.textContent = metrics.format(input.scannerARightIn, 1);
         dom.scannerBStartValue.textContent = metrics.format(input.scannerBLeftIn, 1);
@@ -39,6 +36,12 @@ export function createModelController({ core, dom, state, renderer, metrics, con
 
     function recomputeModel() {
         const input = getInputConfig();
+        const categoryMix = core.computeCategoryMix(
+            input.weedCategories,
+            config.WEED_CATEGORY_DENSITY_MAX_PER_SQFT
+        );
+        const totalDensityPerSqFt = categoryMix.totalDensityPerSqFt;
+        const weightedShootTimeMs = categoryMix.weightedShootTimeMs;
 
         state.band = core.getBandRange(input.bandWidthIn);
 
@@ -50,12 +53,12 @@ export function createModelController({ core, dom, state, renderer, metrics, con
         );
         state.zones = coverageMetrics.ranges;
 
-        const shootTimeMs = core.computeShootTimeMs(input.size);
-        const timePerTargetMs = core.computeTimePerTargetMs(shootTimeMs, input.overheadMs);
+        const shootTimeMs = weightedShootTimeMs;
+        const timePerTargetMs = core.computeTimePerTargetMs(weightedShootTimeMs, input.overheadMs);
         const capacityTargetsPerSecond = core.computeCapacityTargetsPerSecond(state.scanners.length, timePerTargetMs);
 
         const rawSpeedMph = core.computeRawSpeedMph({
-            densityPerSqFt: input.densityPerSqFt,
+            densityPerSqFt: totalDensityPerSqFt,
             bandWidthIn: state.band.width,
             scannerCount: state.scanners.length,
             timePerTargetMs
@@ -83,7 +86,7 @@ export function createModelController({ core, dom, state, renderer, metrics, con
         const utilizedRawSpeedMph = rawSpeedMph * speedUtilizationRatio;
         const appliedSpeed = core.computeAppliedSpeedMph(utilizedRawSpeedMph, config.SPEED_CAP_MPH);
         const inflowTargetsPerSecond = core.computeTargetFlowTargetsPerSecond(
-            input.densityPerSqFt,
+            totalDensityPerSqFt,
             state.band.width,
             appliedSpeed.appliedSpeedMph
         );
@@ -99,7 +102,7 @@ export function createModelController({ core, dom, state, renderer, metrics, con
         const centerPriorityActive = safeTargetingPolicy === 'bottom' &&
             overloadRatio > config.CENTER_PRIORITY_ACTIVATION_RATIO;
         const bandCenterXIn = (state.band.start + state.band.end) / 2;
-        const bandedLoad = core.computeBandedWeedLoadPerSqFt(input.densityPerSqFt, state.band.width);
+        const bandedLoad = core.computeBandedWeedLoadPerSqFt(totalDensityPerSqFt, state.band.width);
         const coveragePlan = core.computeFieldCoveragePlan({
             speedMph: appliedSpeed.appliedSpeedMph,
             machineWidthFt: input.machineWidthFt,
@@ -131,7 +134,9 @@ export function createModelController({ core, dom, state, renderer, metrics, con
             speedUtilizationPercent: safeSpeedUtilizationPercent,
             targetingPolicy: safeTargetingPolicy,
             targetMidlineYIn: safeTargetMidlineYIn,
-            targetUrgentYIn: safeTargetUrgentYIn
+            targetUrgentYIn: safeTargetUrgentYIn,
+            totalDensityPerSqFt,
+            weedCategories: categoryMix.categories
         };
         state.coverage = coveragePlan;
 
@@ -139,7 +144,7 @@ export function createModelController({ core, dom, state, renderer, metrics, con
         dom.targetMidlineSlider.value = safeTargetMidlineYIn.toFixed(1);
         dom.targetUrgentSlider.value = safeTargetUrgentYIn.toFixed(1);
 
-        syncControlReadouts(normalizedInput, shootTimeMs);
+        syncControlReadouts(normalizedInput, totalDensityPerSqFt);
         renderer.renderStaticLayers();
         renderer.renderCoverageField();
         metrics.updateMetrics();

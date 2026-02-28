@@ -12,7 +12,7 @@ export function createInitialState(core, config) {
     return {
         running: false,
         lastTimestampMs: 0,
-        spawnCarry: 0,
+        spawnCarry: {},
         nextWeedId: 1,
         weeds: [],
         scanners: [
@@ -31,7 +31,8 @@ export function createInitialState(core, config) {
             shotMarginSamples: 0,
             shotExitMarginMeanSec: 0,
             queueGrowthEwmaPerSec: 0,
-            lastActiveTargets: 0
+            lastActiveTargets: 0,
+            categories: {}
         },
         recording: {
             isActive: false,
@@ -63,7 +64,16 @@ export function createInitialState(core, config) {
             speedUtilizationPercent: config.DEFAULT_SPEED_UTILIZATION_PERCENT,
             targetingPolicy: config.DEFAULT_TARGETING_POLICY,
             targetMidlineYIn: config.DEFAULT_TARGET_MIDLINE_Y_IN,
-            targetUrgentYIn: config.DEFAULT_TARGET_URGENT_Y_IN
+            targetUrgentYIn: config.DEFAULT_TARGET_URGENT_Y_IN,
+            totalDensityPerSqFt: config.DEFAULT_DENSITY_PER_SQFT,
+            weedCategories: config.DEFAULT_WEED_CATEGORIES.map((category) => ({
+                id: category.name.toLowerCase().replace(/\s+/g, '-'),
+                name: category.name,
+                visualType: category.visualType,
+                densityPerSqFt: category.densityPerSqFt,
+                shootTimeMs: category.shootTimeMs,
+                sharePercent: 100
+            }))
         },
         coverage: initialCoverage,
         band: initialBand,

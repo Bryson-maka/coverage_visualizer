@@ -8,8 +8,8 @@ function requireElement(id) {
 
 export function getDomRefs() {
     return {
-        densitySlider: requireElement('density-slider'),
-        sizeSlider: requireElement('size-slider'),
+        addWeedCategoryButton: requireElement('add-weed-category-button'),
+        weedCategoryList: requireElement('weed-category-list'),
         bandWidthSlider: requireElement('band-width-slider'),
         scannerAEndSlider: requireElement('scanner-a-end-slider'),
         scannerBStartSlider: requireElement('scanner-b-start-slider'),
@@ -24,9 +24,7 @@ export function getDomRefs() {
         coverageEfficiencySlider: requireElement('coverage-efficiency-slider'),
         coverageHoursSlider: requireElement('coverage-hours-slider'),
 
-        densityValue: requireElement('density-value'),
-        sizeValue: requireElement('size-value'),
-        shootTimeValue: requireElement('shoot-time-value'),
+        totalDensityValue: requireElement('total-density-value'),
         bandWidthValue: requireElement('band-width-value'),
         scannerAEndValue: requireElement('scanner-a-end-value'),
         scannerBStartValue: requireElement('scanner-b-start-value'),
@@ -76,6 +74,7 @@ export function getDomRefs() {
         shotLineReadout: requireElement('shot-line-readout'),
         shotMarginReadout: requireElement('shot-margin-readout'),
         queueGrowthReadout: requireElement('queue-growth-readout'),
+        categoryMetricsBody: requireElement('category-metrics-body'),
         scannerAUtilReadout: requireElement('scanner-a-util-readout'),
         scannerBUtilReadout: requireElement('scanner-b-util-readout'),
         scannerADutyReadout: requireElement('scanner-a-duty-readout'),

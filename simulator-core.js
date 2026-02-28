@@ -29,6 +29,23 @@
         maxLeafLengthIn: 1.25
     });
 
+    const SHOOT_TIME_INPUT = Object.freeze({
+        minMs: 10,
+        fineMaxMs: 500,
+        maxMs: 3000,
+        fineStepMs: 10,
+        coarseStepMs: 100
+    });
+
+    const SHOOT_TIME_VISUAL_RANGE = Object.freeze({
+        minMs: 20,
+        maxMs: 3000
+    });
+
+    const CATEGORY_VISUAL_TYPES = Object.freeze(['broadleaf', 'grass']);
+    const DEFAULT_CATEGORY_DENSITY_MAX_PER_SQFT = 150;
+    const SHOOT_TIME_OPTIONS_MS = buildShootTimeInputOptionsMs();
+
     function toNumber(value, fallback) {
         const parsed = Number(value);
         if (Number.isFinite(parsed)) {
@@ -43,6 +60,36 @@
 
     function lerp(start, end, t) {
         return start + (end - start) * t;
+    }
+
+    function buildShootTimeInputOptionsMs() {
+        const options = [];
+
+        for (let shootTimeMs = SHOOT_TIME_INPUT.minMs; shootTimeMs <= SHOOT_TIME_INPUT.fineMaxMs; shootTimeMs += SHOOT_TIME_INPUT.fineStepMs) {
+            options.push(shootTimeMs);
+        }
+
+        for (let shootTimeMs = SHOOT_TIME_INPUT.fineMaxMs + SHOOT_TIME_INPUT.coarseStepMs; shootTimeMs <= SHOOT_TIME_INPUT.maxMs; shootTimeMs += SHOOT_TIME_INPUT.coarseStepMs) {
+            options.push(shootTimeMs);
+        }
+
+        return Object.freeze(options);
+    }
+
+    function normalizeShootTimeInputMs(shootTimeMs) {
+        const rawShootTimeMs = clamp(toNumber(shootTimeMs, SHOOT_TIME_VISUAL_RANGE.minMs), SHOOT_TIME_INPUT.minMs, SHOOT_TIME_INPUT.maxMs);
+
+        if (rawShootTimeMs <= SHOOT_TIME_INPUT.fineMaxMs) {
+            return Math.round(rawShootTimeMs / SHOOT_TIME_INPUT.fineStepMs) * SHOOT_TIME_INPUT.fineStepMs;
+        }
+
+        const coarseSteps = Math.round((rawShootTimeMs - SHOOT_TIME_INPUT.fineMaxMs) / SHOOT_TIME_INPUT.coarseStepMs);
+        const snapped = SHOOT_TIME_INPUT.fineMaxMs + (coarseSteps * SHOOT_TIME_INPUT.coarseStepMs);
+        return clamp(snapped, SHOOT_TIME_INPUT.fineMaxMs, SHOOT_TIME_INPUT.maxMs);
+    }
+
+    function getShootTimeInputOptionsMs() {
+        return SHOOT_TIME_OPTIONS_MS.slice();
     }
 
     function weedsInWindow(densityPerSqFt) {
@@ -167,6 +214,62 @@
         const safeBandWidthIn = Math.max(0, toNumber(bandWidthIn, 0));
         const inchesPerSecond = mphToInchesPerSecond(speedMph);
         return (safeDensityPerSqFt * safeBandWidthIn * inchesPerSecond) / 144;
+    }
+
+    function normalizeCategoryName(name, index) {
+        const safeName = String(name ?? '').trim();
+        if (safeName) {
+            return safeName.slice(0, 36);
+        }
+        return `Weed Category ${index + 1}`;
+    }
+
+    function normalizeCategoryVisualType(visualType) {
+        return CATEGORY_VISUAL_TYPES.includes(visualType) ? visualType : 'broadleaf';
+    }
+
+    function computeCategoryMix(weedCategories, densityMaxPerSqFt) {
+        const categoriesInput = Array.isArray(weedCategories) ? weedCategories : [];
+        const safeDensityMaxPerSqFt = Math.max(0, toNumber(densityMaxPerSqFt, DEFAULT_CATEGORY_DENSITY_MAX_PER_SQFT));
+
+        const normalized = categoriesInput.map((rawCategory, index) => {
+            const rawDensityPerSqFt = toNumber(rawCategory?.densityPerSqFt, 0);
+            const densityPerSqFt = clamp(rawDensityPerSqFt, 0, safeDensityMaxPerSqFt);
+
+            return {
+                id: String(rawCategory?.id ?? `weed-category-${index + 1}`),
+                name: normalizeCategoryName(rawCategory?.name, index),
+                visualType: normalizeCategoryVisualType(rawCategory?.visualType),
+                densityPerSqFt,
+                shootTimeMs: normalizeShootTimeInputMs(rawCategory?.shootTimeMs)
+            };
+        });
+
+        if (normalized.length === 0) {
+            normalized.push({
+                id: 'weed-category-1',
+                name: 'Weed Category 1',
+                visualType: 'broadleaf',
+                densityPerSqFt: 0,
+                shootTimeMs: SHOOT_TIME_VISUAL_RANGE.minMs
+            });
+        }
+
+        const totalDensityPerSqFt = normalized.reduce((sum, category) => sum + category.densityPerSqFt, 0);
+        const weightedShootTimeMs = totalDensityPerSqFt > 0
+            ? normalized.reduce((sum, category) => sum + (category.densityPerSqFt * category.shootTimeMs), 0) / totalDensityPerSqFt
+            : SHOOT_TIME_VISUAL_RANGE.minMs;
+
+        const withShare = normalized.map((category) => ({
+            ...category,
+            sharePercent: totalDensityPerSqFt > 0 ? (category.densityPerSqFt / totalDensityPerSqFt) * 100 : 0
+        }));
+
+        return {
+            categories: withShare,
+            totalDensityPerSqFt,
+            weightedShootTimeMs
+        };
     }
 
     function computeCoverageRates(speedMph, machineWidthIn, bandWidthIn) {
@@ -506,6 +609,32 @@
             (WEED_VISUAL_PROFILE.maxLeafLengthIn - WEED_VISUAL_PROFILE.minLeafLengthIn) * normalized;
     }
 
+    function computeLeafLengthInFromShootTimeMs(shootTimeMs) {
+        const safeShootTimeMs = clamp(
+            toNumber(shootTimeMs, SHOOT_TIME_VISUAL_RANGE.minMs),
+            SHOOT_TIME_VISUAL_RANGE.minMs,
+            SHOOT_TIME_VISUAL_RANGE.maxMs
+        );
+        const normalized = (safeShootTimeMs - SHOOT_TIME_VISUAL_RANGE.minMs) /
+            (SHOOT_TIME_VISUAL_RANGE.maxMs - SHOOT_TIME_VISUAL_RANGE.minMs);
+
+        return WEED_VISUAL_PROFILE.minLeafLengthIn +
+            (WEED_VISUAL_PROFILE.maxLeafLengthIn - WEED_VISUAL_PROFILE.minLeafLengthIn) * normalized;
+    }
+
+    function shootTimeMsToVisualSize(shootTimeMs) {
+        const safeShootTimeMs = clamp(
+            toNumber(shootTimeMs, SHOOT_TIME_VISUAL_RANGE.minMs),
+            SHOOT_TIME_VISUAL_RANGE.minMs,
+            SHOOT_TIME_VISUAL_RANGE.maxMs
+        );
+        const normalized = (safeShootTimeMs - SHOOT_TIME_VISUAL_RANGE.minMs) /
+            (SHOOT_TIME_VISUAL_RANGE.maxMs - SHOOT_TIME_VISUAL_RANGE.minMs);
+
+        return SHOOT_TIME_PROFILE.minSize +
+            ((SHOOT_TIME_PROFILE.maxSize - SHOOT_TIME_PROFILE.minSize) * normalized);
+    }
+
     function computeLeafCount(size, weedType) {
         const safeSize = clamp(
             toNumber(size, SHOOT_TIME_PROFILE.minSize),
@@ -524,6 +653,14 @@
         return {
             leafLengthIn: computeLeafLengthIn(size),
             leafCount: computeLeafCount(size, weedType)
+        };
+    }
+
+    function computeWeedVisualProfileFromShootTimeMs(shootTimeMs, weedType) {
+        const visualSize = shootTimeMsToVisualSize(shootTimeMs);
+        return {
+            leafLengthIn: computeLeafLengthInFromShootTimeMs(shootTimeMs),
+            leafCount: computeLeafCount(visualSize, weedType)
         };
     }
 
@@ -577,9 +714,16 @@
 
         const safeOptions = options && typeof options === 'object' ? options : {};
         const minimumExitMarginIn = Math.max(0, toNumber(safeOptions.minimumExitMarginIn, 0));
-        const viableCandidates = minimumExitMarginIn > 0
-            ? candidates.filter((weed) => (SCAN_HEIGHT_IN - weed.yIn) >= minimumExitMarginIn)
-            : candidates;
+        const minimumExitMarginInForWeed = typeof safeOptions.minimumExitMarginInForWeed === 'function'
+            ? safeOptions.minimumExitMarginInForWeed
+            : null;
+        const viableCandidates = candidates.filter((weed) => {
+            const requiredExitMarginIn = minimumExitMarginInForWeed
+                ? Math.max(0, toNumber(minimumExitMarginInForWeed(weed), minimumExitMarginIn))
+                : minimumExitMarginIn;
+
+            return requiredExitMarginIn <= 0 || (SCAN_HEIGHT_IN - weed.yIn) >= requiredExitMarginIn;
+        });
 
         if (viableCandidates.length === 0) {
             return null;
@@ -641,8 +785,12 @@
         WINDOW_AREA_SQFT,
         REFERENCE_SQFT_WIDTH_IN,
         SHOOT_TIME_PROFILE,
+        SHOOT_TIME_INPUT,
+        SHOOT_TIME_VISUAL_RANGE,
         WEED_VISUAL_PROFILE,
         clamp,
+        normalizeShootTimeInputMs,
+        getShootTimeInputOptionsMs,
         weedsInWindow,
         computeBandedWeedLoadPerSqFt,
         computeShootTimeMs,
@@ -653,6 +801,7 @@
         computeRawSpeedMph,
         computeAppliedSpeedMph,
         computeTargetFlowTargetsPerSecond,
+        computeCategoryMix,
         computeCoverageRates,
         computeFieldCoveragePlan,
         computeCenterPriorityWidthIn,
@@ -660,8 +809,10 @@
         normalizeScannerRanges,
         computeCoverageMetrics,
         computeLeafLengthIn,
+        computeLeafLengthInFromShootTimeMs,
         computeLeafCount,
         computeWeedVisualProfile,
+        computeWeedVisualProfileFromShootTimeMs,
         selectBottomMostTarget,
         selectTargetByPolicy
     };

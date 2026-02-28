@@ -24,31 +24,16 @@
                 </div>
 
                 <details class="panel-dropdown" open>
-                    <summary>Weed Profile + Throughput</summary>
+                    <summary>Weed Categories</summary>
                     <div class="panel-dropdown-content">
-                        <label class="control" for="density-slider">
-                            <span class="control-header">
-                                <span>Weed Density (<span id="density-value">1</span> weeds/sq ft)</span>
-                                <button type="button" class="set-default-btn" data-default-key="densityPerSqFt">Set Default</button>
-                            </span>
-                            <input type="range" id="density-slider" min="1" max="250" step="1" value="60">
-                            <small>Expected in 24" x 20": <strong id="window-density">0.00</strong> weeds</small>
-                        </label>
-
-                        <label class="control" for="size-slider">
-                            <span class="control-header">
-                                <span>Average Weed Size (<span id="size-value">10</span>)</span>
-                                <button type="button" class="set-default-btn" data-default-key="weedSize">Set Default</button>
-                            </span>
-                            <input type="range" id="size-slider" min="1" max="20" step="1" value="10">
-                            <small>Dose and shoot time come from a nonlinear size profile.</small>
-                        </label>
-
-                        <div class="control readout-control">
-                            <span>Shoot Time From Weed Size</span>
-                            <p class="control-value"><strong id="shoot-time-value">0.00</strong> ms</p>
-                            <small>Profile anchors: size 1=25ms, size 2=30ms, size 3=40ms, size 20=250ms.</small>
+                        <div class="weed-category-toolbar">
+                            <button id="add-weed-category-button" class="btn" type="button">Add Weed Category</button>
+                            <button type="button" class="set-default-btn" data-default-key="weedCategories">Set Default Categories</button>
                         </div>
+                        <p class="weed-category-summary">Total Weed Density: <strong id="total-density-value">0</strong> weeds/sq ft</p>
+                        <p class="weed-category-summary">Expected in 24" x 20": <strong id="window-density">0.00</strong> weeds</p>
+                        <div id="weed-category-list" class="weed-category-list"></div>
+                        <small class="weed-category-note">Shoot-time slider uses 10 ms steps from 10-500 ms, then 100 ms steps to 3000 ms.</small>
                     </div>
                 </details>
 
@@ -356,6 +341,30 @@
                             <p>Scanner B Duty Cycle: <strong id="scanner-b-duty-readout">0.00</strong>%</p>
                             <p>Target Inflow @ Applied Speed: <strong id="inflow-readout">0.00</strong> /sec</p>
                             <p>Scanner Capacity: <strong id="capacity-readout">0.00</strong> /sec</p>
+                            <div class="category-metrics-block">
+                                <p class="category-metrics-title">Per-Category Outcomes</p>
+                                <div class="category-metrics-scroll">
+                                    <table class="category-metrics-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Category</th>
+                                                <th>Type</th>
+                                                <th>Share</th>
+                                                <th>Active</th>
+                                                <th>Full Shot</th>
+                                                <th>Partial</th>
+                                                <th>Missed</th>
+                                                <th>Hit Rate</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="category-metrics-body">
+                                            <tr>
+                                                <td colspan="8" class="category-metrics-empty">No categories configured.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </details>
 
@@ -366,7 +375,7 @@
                             <p>Headroom-Adjusted Raw Speed: <strong id="utilized-speed-readout">0.00</strong> mph</p>
                             <p>Applied Speed: <strong id="applied-speed-readout">0.00</strong> mph</p>
                             <p>Speed Utilization Target: <strong id="utilization-target-readout">0</strong>%</p>
-                            <p>Shoot Time: <strong id="shoot-time-readout">0.00</strong> ms</p>
+                            <p>Weighted Shoot Time: <strong id="shoot-time-readout">0.00</strong> ms</p>
                             <p>Overhead Time: <strong id="overhead-readout">0.00</strong> ms</p>
                             <p>Time Per Target: <strong id="time-per-target-readout">0.00</strong> ms</p>
                             <p>Targeting Policy: <strong id="targeting-policy-readout">bottom</strong></p>
@@ -409,7 +418,7 @@
             <div class="snapshot-modal-header">
                 <div>
                     <p id="snapshot-detail-title" class="snapshot-modal-title">Pass Snapshot</p>
-                    <p id="snapshot-detail-settings" class="snapshot-modal-settings">Density 0 | Size 0 | Band 0.0 in</p>
+                    <p id="snapshot-detail-settings" class="snapshot-modal-settings">Density 0 | Shoot 0 ms | Band 0.0 in</p>
                 </div>
                 <button id="snapshot-detail-close" class="btn" type="button" aria-label="Close pass snapshot detail">Close</button>
             </div>

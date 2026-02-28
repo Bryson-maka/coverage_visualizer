@@ -27,6 +27,15 @@ export function createMetricsPresenter({ dom, state, core }) {
         return date.toLocaleTimeString();
     }
 
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+    }
+
     function snapshotColor(result) {
         if (result === 'shot') {
             return '#16a34a';
@@ -44,8 +53,27 @@ export function createMetricsPresenter({ dom, state, core }) {
         return state.passSnapshots.find((snapshot) => snapshot.id === snapshotId) || null;
     }
 
+    function formatSnapshotCategorySummary(settings = {}) {
+        const categories = Array.isArray(settings.categories) ? settings.categories : [];
+        if (categories.length === 0) {
+            return 'No categories';
+        }
+
+        const sorted = [...categories].sort((a, b) => (b.sharePercent ?? 0) - (a.sharePercent ?? 0));
+        const preview = sorted.slice(0, 3).map((category) => {
+            const name = String(category.name ?? 'Category');
+            return `${name} ${format(category.sharePercent ?? 0, 0)}%`;
+        });
+
+        if (sorted.length > 3) {
+            preview.push(`+${sorted.length - 3} more`);
+        }
+
+        return preview.join(', ');
+    }
+
     function buildSnapshotSettingsText(settings = {}) {
-        return `Density ${format(settings.densityPerSqFt ?? 0, 0)} | Size ${format(settings.weedSize ?? 0, 0)} | Band ${format(settings.bandWidthIn ?? 0, 1)} in | Util ${format(settings.speedUtilizationPercent ?? 0, 0)}% | Policy ${formatPolicy(settings.targetingPolicy)} | Speed ${format(settings.appliedSpeedMph ?? 0, 2)} mph`;
+        return `Density ${format(settings.densityPerSqFt ?? 0, 0)} | Shoot ${format(settings.weightedShootTimeMs ?? 0, 0)} ms | Band ${format(settings.bandWidthIn ?? 0, 1)} in | Util ${format(settings.speedUtilizationPercent ?? 0, 0)}% | Policy ${formatPolicy(settings.targetingPolicy)} | Speed ${format(settings.appliedSpeedMph ?? 0, 2)} mph | Mix ${formatSnapshotCategorySummary(settings)}`;
     }
 
     function buildSnapshotPlot(snapshot) {
@@ -242,18 +270,70 @@ export function createMetricsPresenter({ dom, state, core }) {
         dom.passSnapshotHistory.innerHTML = cards;
     }
 
+    function renderCategoryMetrics(activeTargetsByCategory) {
+        const categories = Array.isArray(state.model.weedCategories) ? state.model.weedCategories : [];
+        const categoryStats = state.stats.categories || {};
+
+        if (categories.length === 0) {
+            dom.categoryMetricsBody.innerHTML = '<tr><td colspan="8" class="category-metrics-empty">No categories configured.</td></tr>';
+            return;
+        }
+
+        const rows = categories.map((category) => {
+            const stats = categoryStats[category.id] || {
+                shots: 0,
+                fullyShot: 0,
+                partial: 0,
+                missed: 0
+            };
+            const activeTargets = activeTargetsByCategory.get(category.id) ?? 0;
+            const resolved = stats.fullyShot + stats.partial + stats.missed;
+            const hitRate = resolved > 0 ? (stats.fullyShot / resolved) * 100 : 0;
+            const typeLabel = category.visualType === 'grass' ? 'Grass' : 'Broadleaf';
+
+            return [
+                '<tr>',
+                `<td>${escapeHtml(category.name)}</td>`,
+                `<td>${typeLabel}</td>`,
+                `<td>${format(category.sharePercent ?? 0, 1)}%</td>`,
+                `<td>${activeTargets}</td>`,
+                `<td>${stats.fullyShot}</td>`,
+                `<td>${stats.partial}</td>`,
+                `<td>${stats.missed}</td>`,
+                `<td>${format(hitRate, 1)}%</td>`,
+                '</tr>'
+            ].join('');
+        }).join('');
+
+        dom.categoryMetricsBody.innerHTML = rows;
+    }
+
     function updateMetrics() {
-        const activeTargets = state.weeds.filter(
-            (weed) => !weed.shot &&
-                weed.yIn >= 0 &&
-                weed.yIn <= core.SCAN_HEIGHT_IN &&
-                weed.xIn >= state.band.start &&
-                weed.xIn <= state.band.end
-        ).length;
+        let activeTargets = 0;
+        const activeTargetsByCategory = new Map();
+        for (const weed of state.weeds) {
+            if (weed.shot) {
+                continue;
+            }
+            if (weed.yIn < 0 || weed.yIn > core.SCAN_HEIGHT_IN) {
+                continue;
+            }
+            if (weed.xIn < state.band.start || weed.xIn > state.band.end) {
+                continue;
+            }
+
+            activeTargets += 1;
+            const categoryId = String(weed.categoryId ?? '');
+            activeTargetsByCategory.set(
+                categoryId,
+                (activeTargetsByCategory.get(categoryId) ?? 0) + 1
+            );
+        }
+
         const queueDepth = activeTargets;
         const totalResolved = state.stats.fullyShot + state.stats.partial + state.stats.missed;
         const hitRate = totalResolved > 0 ? (state.stats.fullyShot / totalResolved) * 100 : 0;
-        const density = Number(dom.densitySlider.value);
+        const density = Number(state.model.totalDensityPerSqFt);
         const shotLineLabel = state.stats.shotSamples > 0
             ? format(state.stats.shotLineYMeanIn, 2)
             : 'N/A';
@@ -280,6 +360,7 @@ export function createMetricsPresenter({ dom, state, core }) {
         dom.shotLineReadout.textContent = shotLineLabel;
         dom.shotMarginReadout.textContent = shotMarginLabel;
         dom.queueGrowthReadout.textContent = format(state.stats.queueGrowthEwmaPerSec, 2);
+        renderCategoryMetrics(activeTargetsByCategory);
 
         const elapsedSeconds = state.stats.elapsedMs / 1000;
         const elapsedMinutes = elapsedSeconds / 60;

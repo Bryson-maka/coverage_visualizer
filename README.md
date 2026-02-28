@@ -6,7 +6,14 @@ Live URL: `https://bryson-maka.github.io/coverage_visualizer/`
 
 ## Core Features
 
-- Simulation controls for weed density, weed size, band width, scanner bar ranges, overhead, and speed utilization.
+- Dynamic weed categories:
+  - Add/remove categories with per-category weed name, density, and shoot time.
+  - Select per-category visual type (`grass` or `broadleaf`).
+  - Live percentage share updates from per-category density totals.
+- Shoot time controls:
+  - Per-category shoot time slider with `10 ms` steps from `10..500 ms`.
+  - `100 ms` steps from `500..3000 ms`.
+  - Throughput math uses weighted shoot time from the active category mix.
 - Targeting strategies:
   - `Midline + Urgent Fallback`
   - `Centerline + Bottom Fallback` (default)
@@ -76,6 +83,7 @@ This repo uses GitHub Actions Pages deployment via `.github/workflows/deploy-pag
 ├── src/
 │   ├── main.js
 │   └── app/
+│       ├── categories.js
 │       ├── config.js
 │       ├── core.js
 │       ├── defaults.js
@@ -98,6 +106,7 @@ This repo uses GitHub Actions Pages deployment via `.github/workflows/deploy-pag
 - `src/app/engine.js`: simulation loop (spawn, move, target, shot lifecycle).
 - `src/app/render.js`: scan window + coverage field SVG rendering.
 - `src/app/metrics.js`: UI projection of runtime/model metrics.
+- `src/app/categories.js`: dynamic weed category UI + input normalization.
 - `src/app/defaults.js`: per-input default persistence and restore.
 - `src/main.js`: composition + event wiring.
 
