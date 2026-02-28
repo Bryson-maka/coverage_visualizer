@@ -220,6 +220,16 @@
                     >
                         Coverage Data
                     </button>
+                    <button
+                        id="metrics-tab-math"
+                        class="metrics-tab"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="metrics-panel-math"
+                    >
+                        Math Reference
+                    </button>
                 </div>
 
                 <section id="metrics-panel-simulation" class="metrics-tab-panel" role="tabpanel" aria-labelledby="metrics-tab-simulation">
@@ -318,6 +328,10 @@
                     </details>
 
                     <p class="control-note">Coverage KPI is based on simulation speed and your planner inputs.</p>
+                </section>
+
+                <section id="metrics-panel-math" class="metrics-tab-panel hidden" role="tabpanel" aria-labelledby="metrics-tab-math">
+                    <div id="math-reference-content" class="math-reference-content"></div>
                 </section>
 
                 <section id="metrics-panel-simulation-secondary" class="metrics-tab-panel">

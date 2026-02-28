@@ -25,16 +25,21 @@ const model = createModelController({ core, dom, state, renderer, metrics, confi
 const engine = createSimulationEngine({ core, dom, state, renderer, metrics, config: APP_CONFIG });
 
 function setMetricsTab(activeTab) {
+    const showingSimulation = activeTab === 'simulation';
     const showingCoverage = activeTab === 'coverage';
+    const showingMath = activeTab === 'math';
 
-    dom.metricsTabSimulation.classList.toggle('is-active', !showingCoverage);
+    dom.metricsTabSimulation.classList.toggle('is-active', showingSimulation);
     dom.metricsTabCoverage.classList.toggle('is-active', showingCoverage);
-    dom.metricsTabSimulation.setAttribute('aria-selected', String(!showingCoverage));
+    dom.metricsTabMath.classList.toggle('is-active', showingMath);
+    dom.metricsTabSimulation.setAttribute('aria-selected', String(showingSimulation));
     dom.metricsTabCoverage.setAttribute('aria-selected', String(showingCoverage));
+    dom.metricsTabMath.setAttribute('aria-selected', String(showingMath));
 
-    dom.metricsPanelSimulation.classList.toggle('hidden', showingCoverage);
-    dom.metricsPanelSimulationSecondary.classList.toggle('hidden', showingCoverage);
+    dom.metricsPanelSimulation.classList.toggle('hidden', !showingSimulation);
+    dom.metricsPanelSimulationSecondary.classList.toggle('hidden', !showingSimulation);
     dom.metricsPanelCoverage.classList.toggle('hidden', !showingCoverage);
+    dom.metricsPanelMath.classList.toggle('hidden', !showingMath);
     dom.simulationVisualView.classList.toggle('hidden', showingCoverage);
     dom.coverageVisualView.classList.toggle('hidden', !showingCoverage);
 }
@@ -136,6 +141,10 @@ function bindEvents() {
 
     dom.metricsTabCoverage.addEventListener('click', () => {
         setMetricsTab('coverage');
+    });
+
+    dom.metricsTabMath.addEventListener('click', () => {
+        setMetricsTab('math');
     });
 
     bindDefaultControls({

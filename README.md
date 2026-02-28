@@ -35,6 +35,10 @@ Live URL: `https://bryson-maka.github.io/coverage_visualizer/`
 - Coverage planner tab:
   - Machine width, field size, field shape, efficiency, selected time.
   - Coverage rate, time-to-complete, pass progress, and painted field view.
+- Math Reference tab:
+  - Live substituted equations for weighted shoot time, time-per-target, capacity, speed, and inflow.
+  - Category-level required exit-margin table and worked examples.
+  - Explicit assumptions/non-obvious behaviors for educational use.
 - Persistent control defaults:
   - Each configurable field includes `Set Default`.
   - `Reset Saved Defaults` clears saved defaults and restores built-ins.

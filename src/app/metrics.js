@@ -12,6 +12,20 @@ export function createMetricsPresenter({ dom, state, core }) {
         return Number.isFinite(numeric) ? numeric.toFixed(digits) : 'N/A';
     }
 
+    function formatMaybeInfinite(value, digits) {
+        const numeric = Number(value);
+        if (Number.isFinite(numeric)) {
+            return numeric.toFixed(digits);
+        }
+        if (numeric === Number.POSITIVE_INFINITY) {
+            return 'Infinity';
+        }
+        if (numeric === Number.NEGATIVE_INFINITY) {
+            return '-Infinity';
+        }
+        return 'N/A';
+    }
+
     function formatPolicy(policy) {
         if (policy === 'bottom-only') {
             return 'bottom-most';
@@ -308,6 +322,179 @@ export function createMetricsPresenter({ dom, state, core }) {
         dom.categoryMetricsBody.innerHTML = rows;
     }
 
+    function buildWorkedExample({ categories, bandWidthIn, overheadMs, utilizationPercent, speedCapMph = 3 }) {
+        const mix = core.computeCategoryMix(categories, 150);
+        const scannerCount = 2;
+        const safeBandWidthIn = core.clamp(Number(bandWidthIn), 0, core.SCAN_WIDTH_IN);
+        const safeOverheadMs = Math.max(0, Number(overheadMs));
+        const safeUtilizationPercent = core.clamp(Number(utilizationPercent), 0, 200);
+
+        const weightedShootTimeMs = mix.weightedShootTimeMs;
+        const timePerTargetMs = core.computeTimePerTargetMs(weightedShootTimeMs, safeOverheadMs);
+        const capacityTargetsPerSecond = core.computeCapacityTargetsPerSecond(scannerCount, timePerTargetMs);
+        const targetsPerInch = (mix.totalDensityPerSqFt * safeBandWidthIn) / 144;
+        const rawSpeedMph = core.computeRawSpeedMph({
+            densityPerSqFt: mix.totalDensityPerSqFt,
+            bandWidthIn: safeBandWidthIn,
+            scannerCount,
+            timePerTargetMs
+        });
+        const headroomMph = rawSpeedMph * (safeUtilizationPercent / 100);
+        const appliedSpeed = core.computeAppliedSpeedMph(headroomMph, speedCapMph);
+        const appliedInchesPerSecond = core.mphToInchesPerSecond(appliedSpeed.appliedSpeedMph);
+        const inflowTargetsPerSecond = core.computeTargetFlowTargetsPerSecond(
+            mix.totalDensityPerSqFt,
+            safeBandWidthIn,
+            appliedSpeed.appliedSpeedMph
+        );
+        const overloadRatio = capacityTargetsPerSecond > 0
+            ? inflowTargetsPerSecond / capacityTargetsPerSecond
+            : 0;
+
+        return {
+            mix,
+            scannerCount,
+            bandWidthIn: safeBandWidthIn,
+            overheadMs: safeOverheadMs,
+            utilizationPercent: safeUtilizationPercent,
+            speedCapMph,
+            weightedShootTimeMs,
+            timePerTargetMs,
+            capacityTargetsPerSecond,
+            targetsPerInch,
+            rawSpeedMph,
+            headroomMph,
+            appliedSpeedMph: appliedSpeed.appliedSpeedMph,
+            isCapped: appliedSpeed.isCapped,
+            appliedInchesPerSecond,
+            inflowTargetsPerSecond,
+            overloadRatio
+        };
+    }
+
+    function buildMixNumeratorText(categories) {
+        if (!Array.isArray(categories) || categories.length === 0) {
+            return '0';
+        }
+        return categories.map((category) => (
+            `${format(category.densityPerSqFt ?? 0, 1)}*${format(category.shootTimeMs ?? 0, 0)}`
+        )).join(' + ');
+    }
+
+    function buildMathCategoryRows(example) {
+        return example.mix.categories.map((category) => {
+            const requiredExitMarginIn = example.appliedInchesPerSecond * (category.shootTimeMs / 1000);
+            const typeLabel = category.visualType === 'grass' ? 'Grass' : 'Broadleaf';
+
+            return [
+                '<tr>',
+                `<td>${escapeHtml(category.name)}</td>`,
+                `<td>${typeLabel}</td>`,
+                `<td>${format(category.densityPerSqFt, 1)}</td>`,
+                `<td>${format(category.sharePercent, 1)}%</td>`,
+                `<td>${format(category.shootTimeMs, 0)} ms</td>`,
+                `<td>${format(requiredExitMarginIn, 2)} in</td>`,
+                '</tr>'
+            ].join('');
+        }).join('');
+    }
+
+    function buildExampleSummaryRows(example) {
+        return [
+            ['Weighted Shoot Time', `${formatMaybeInfinite(example.weightedShootTimeMs, 2)} ms`],
+            ['Time Per Target', `${formatMaybeInfinite(example.timePerTargetMs, 2)} ms`],
+            ['Capacity', `${formatMaybeInfinite(example.capacityTargetsPerSecond, 2)} targets/sec`],
+            ['Raw Speed', `${formatMaybeInfinite(example.rawSpeedMph, 4)} mph`],
+            ['Headroom Speed', `${formatMaybeInfinite(example.headroomMph, 4)} mph`],
+            ['Applied Speed', `${formatMaybeInfinite(example.appliedSpeedMph, 4)} mph`],
+            ['Target Inflow', `${formatMaybeInfinite(example.inflowTargetsPerSecond, 2)} targets/sec`],
+            ['Overload Ratio', `${formatMaybeInfinite(example.overloadRatio, 3)}x`]
+        ].map(([label, value]) => (
+            `<tr><th scope="row">${label}</th><td>${value}</td></tr>`
+        )).join('');
+    }
+
+    function renderMathReference() {
+        const categories = Array.isArray(state.model.weedCategories) ? state.model.weedCategories : [];
+        const liveExample = buildWorkedExample({
+            categories,
+            bandWidthIn: state.band.width,
+            overheadMs: Number(dom.overheadSlider.value),
+            utilizationPercent: state.model.speedUtilizationPercent,
+            speedCapMph: 3
+        });
+        const referenceExample = buildWorkedExample({
+            categories: [
+                {
+                    id: 'example-broadleaf',
+                    name: 'Example Broadleaf',
+                    visualType: 'broadleaf',
+                    densityPerSqFt: 60,
+                    shootTimeMs: 400
+                }
+            ],
+            bandWidthIn: 24,
+            overheadMs: 60,
+            utilizationPercent: 99,
+            speedCapMph: 3
+        });
+
+        const mixNumeratorText = buildMixNumeratorText(liveExample.mix.categories);
+        const liveConsistencyLine = liveExample.isCapped
+            ? 'Consistency check: applied speed is capped, so inflow/capacity can be below utilization target.'
+            : `Consistency check: inflow/capacity = ${formatMaybeInfinite(liveExample.overloadRatio, 3)}x (matches utilization ratio ${format(liveExample.utilizationPercent / 100, 3)}).`;
+        const liveCategoryRows = buildMathCategoryRows(liveExample);
+
+        dom.mathReferenceContent.innerHTML = [
+            '<section class="math-card">',
+            '<h3>Throughput Math (Live Inputs)</h3>',
+            '<p class="math-note">Overhead includes scanner movement and control latency between targets.</p>',
+            '<ol class="math-steps">',
+            `<li><code>weighted_shoot_time_ms = (${mixNumeratorText}) / ${format(liveExample.mix.totalDensityPerSqFt, 1)}</code><span>= ${formatMaybeInfinite(liveExample.weightedShootTimeMs, 2)} ms</span></li>`,
+            `<li><code>time_per_target_ms = weighted_shoot_time_ms + overhead_ms</code><span>= ${formatMaybeInfinite(liveExample.timePerTargetMs, 2)} ms</span></li>`,
+            `<li><code>capacity_targets_per_sec = ${liveExample.scannerCount} * (1000 / time_per_target_ms)</code><span>= ${formatMaybeInfinite(liveExample.capacityTargetsPerSecond, 2)} /sec</span></li>`,
+            `<li><code>targets_per_inch = total_density * band_width / 144</code><span>= ${formatMaybeInfinite(liveExample.targetsPerInch, 4)} targets/in</span></li>`,
+            `<li><code>raw_speed_mph = (capacity / targets_per_inch) * 3600 / 63360</code><span>= ${formatMaybeInfinite(liveExample.rawSpeedMph, 4)} mph</span></li>`,
+            `<li><code>headroom_speed_mph = raw_speed_mph * (utilization/100)</code><span>= ${formatMaybeInfinite(liveExample.headroomMph, 4)} mph</span></li>`,
+            `<li><code>applied_speed_mph = min(headroom_speed_mph, ${format(liveExample.speedCapMph, 1)})</code><span>= ${formatMaybeInfinite(liveExample.appliedSpeedMph, 4)} mph</span></li>`,
+            `<li><code>inflow_targets_per_sec = total_density * band_width * applied_ips / 144</code><span>= ${formatMaybeInfinite(liveExample.inflowTargetsPerSecond, 2)} /sec</span></li>`,
+            `<li><code>overload_ratio = inflow / capacity</code><span>= ${formatMaybeInfinite(liveExample.overloadRatio, 3)}x</span></li>`,
+            '</ol>',
+            `<p class="math-note">${liveConsistencyLine}</p>`,
+            '</section>',
+            '<section class="math-card">',
+            '<h3>Category Mix and Exit Margin</h3>',
+            '<p class="math-note">A target is skipped when remaining vertical distance is less than required exit margin.</p>',
+            '<div class="math-table-wrap">',
+            '<table class="math-table">',
+            '<thead><tr><th>Category</th><th>Type</th><th>Density</th><th>Share</th><th>Shoot Time</th><th>Required Exit Margin</th></tr></thead>',
+            `<tbody>${liveCategoryRows}</tbody>`,
+            '</table>',
+            '</div>',
+            `<p class="math-note"><code>required_exit_margin_in = applied_ips * (category_shoot_time_ms / 1000)</code></p>`,
+            '</section>',
+            '<section class="math-card">',
+            '<h3>Reference Worked Example (Single Category)</h3>',
+            '<p class="math-note">Example input: density 60 weeds/sq ft, shoot time 400 ms, overhead 60 ms, band 24 in, utilization 99%.</p>',
+            '<div class="math-table-wrap">',
+            '<table class="math-table math-summary-table">',
+            `<tbody>${buildExampleSummaryRows(referenceExample)}</tbody>`,
+            '</table>',
+            '</div>',
+            '</section>',
+            '<section class="math-card">',
+            '<h3>Assumptions and Non-Obvious Behavior</h3>',
+            '<ul class="math-list">',
+            '<li>Throughput uses weighted average shoot time across categories.</li>',
+            '<li>Per-target viability uses each weed\'s own shoot time for exit-margin checks.</li>',
+            '<li>Scanner cooldown currently uses average time-per-target (mean-field approximation).</li>',
+            '<li>Visual size is educational: 20 ms is minimum glyph size and 3000 ms is legacy max glyph size.</li>',
+            '<li>When total density is zero, raw speed can be mathematically unbounded, but applied speed is clamped by finite-input handling.</li>',
+            '</ul>',
+            '</section>'
+        ].join('');
+    }
+
     function updateMetrics() {
         let activeTargets = 0;
         const activeTargetsByCategory = new Map();
@@ -439,6 +626,7 @@ export function createMetricsPresenter({ dom, state, core }) {
         dom.visualFieldReadout.textContent = `${format(coverage.fieldAreaAcres, 1)} ac ${coverage.fieldShapeLabel}`;
         dom.visualRateReadout.textContent = format(coverage.coverageAcresPerHour, 2);
         dom.visualCompletionReadout.textContent = format(coverage.completionPercent, 1);
+        renderMathReference();
 
         if (state.recording.isActive) {
             const elapsedRecordingMs = Math.max(0, state.stats.elapsedMs - state.recording.startedElapsedMs);

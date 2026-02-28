@@ -10,6 +10,7 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 - [ ] `Record 30s Pass` button and recorder status are visible.
 - [ ] `Applied Machine Speed` displays a numeric value.
 - [ ] Metrics tabs switch between `Simulation` and `Coverage Data`.
+- [ ] Metrics tabs switch between `Simulation`, `Coverage Data`, and `Math Reference`.
 - [ ] Left-panel control groups can be opened/closed.
 - [ ] Metrics dropdown groups can be opened/closed.
 
@@ -96,6 +97,13 @@ Use this checklist to validate simulator behavior in a browser before adding mor
 - [ ] Switching field shape between square/circle updates the field boundary drawing.
 - [ ] Selected paint time updates both completion KPI and pass-painted field map.
 - [ ] Pass progress readout (`completed / total`, active pass) matches field painting state.
+
+## Math Reference Tab
+
+- [ ] Math Reference shows live substituted equations for weighted shoot time, time-per-target, capacity, speed, and inflow.
+- [ ] Category table shows density share, shoot time, and required exit margin for each category.
+- [ ] Reference worked example renders with deterministic values and readable units.
+- [ ] Assumptions list is visible and explains model approximations.
 
 ## Density Conversion Sanity
 

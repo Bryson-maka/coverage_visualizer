@@ -44,9 +44,11 @@ export function getDomRefs() {
 
         metricsTabSimulation: requireElement('metrics-tab-simulation'),
         metricsTabCoverage: requireElement('metrics-tab-coverage'),
+        metricsTabMath: requireElement('metrics-tab-math'),
         metricsPanelSimulation: requireElement('metrics-panel-simulation'),
         metricsPanelSimulationSecondary: requireElement('metrics-panel-simulation-secondary'),
         metricsPanelCoverage: requireElement('metrics-panel-coverage'),
+        metricsPanelMath: requireElement('metrics-panel-math'),
         simulationVisualView: requireElement('simulation-visual-view'),
         coverageVisualView: requireElement('coverage-visual-view'),
 
@@ -119,6 +121,7 @@ export function getDomRefs() {
         coveragePercentReadout: requireElement('coverage-percent-readout'),
         coveragePassesReadout: requireElement('coverage-passes-readout'),
         coverageActivePassReadout: requireElement('coverage-active-pass-readout'),
+        mathReferenceContent: requireElement('math-reference-content'),
 
         visualMachineWidthReadout: requireElement('visual-machine-width-readout'),
         visualFieldReadout: requireElement('visual-field-readout'),
